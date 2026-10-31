@@ -1,0 +1,43 @@
+name: Verify Minecraft 26.3 Forge 66.1.0 toolchain
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/forge-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  forge-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            25
+      - name: Download official MDK
+        run: |
+          curl --fail --location --retry 3 https://maven.minecraftforge.net/net/minecraftforge/forge/26.3-66.1.0/forge-26.3-66.1.0-mdk.zip -o mdk.zip
+          mkdir probe
+          unzip -q mdk.zip -d probe
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.7.1'
+      - name: Compile official sample (not the playable mod)
+        working-directory: probe
+        run: gradle --no-daemon build --stacktrace
+      - name: Save diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-toolchain-diagnostics
+          path: |
+            probe/build/reports/
+            /home/runner/.gradle/caches/minecraftforge/**/*.log
+          if-no-files-found: ignore
