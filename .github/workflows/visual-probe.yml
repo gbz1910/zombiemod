@@ -1,0 +1,60 @@
+name: Blender to Minecraft visual probe
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/visual-probe.yml'
+      - 'tools/ProbeClient.java'
+      - 'tools/install_pipeline_probe.py'
+permissions:
+  contents: read
+jobs:
+  visual-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            25
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.7.1'
+      - name: Prepare client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers
+          curl --fail --location --retry 3 https://maven.minecraftforge.net/net/minecraftforge/forge/26.3-66.1.0/forge-26.3-66.1.0-mdk.zip -o mdk.zip
+          mkdir probe
+          unzip -q mdk.zip -d probe
+          python3 tools/install_pipeline_probe.py probe
+          cp tools/ProbeClient.java probe/src/main/java/com/example/examplemod/
+          mkdir -p probe/run
+          printf 'onboardAccessibility:false\nmaxFps:30\nrenderDistance:2\n' > probe/run/options.txt
+      - name: Compile animated probe
+        working-directory: probe
+        run: gradle --no-daemon build --stacktrace
+      - name: Execute actual Minecraft client
+        working-directory: probe
+        run: |
+          set -o pipefail
+          timeout 600 xvfb-run -a -s '-screen 0 1280x720x24' gradle --no-daemon runClient 2>&1 | tee client-console.log
+          grep -q BLENDER_PROBE_RENDER_LOOP_COMPLETED client-console.log
+          test "$(find run/screenshots -name '*.png' | wc -l)" -ge 2
+      - name: Upload probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-minecraft-probe-evidence
+          path: |
+            probe/run/screenshots/
+            probe/run/logs/
+            probe/run/crash-reports/
+            probe/client-console.log
+            probe/build/reports/
+          if-no-files-found: ignore
