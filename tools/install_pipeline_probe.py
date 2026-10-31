@@ -11,7 +11,7 @@ models.mkdir(parents=True, exist_ok=True)
 entries = []
 for frame in frames:
     name = 'probe_' + str(frame['frame'])
-    model = {'textures': {'all': 'minecraft:block/copper_block', 'particle': 'minecraft:block/copper_block'}, 'elements': frame['elements']}
+    model = {'textures': {'all': 'minecraft:block/copper_block', 'particle': 'minecraft:block/copper_block'}, 'elements': frame['elements'], 'display': {'gui': {'rotation': [25, 135, 0], 'translation': [0, 0, 0], 'scale': [1, 1, 1]}}}
     (models / (name + '.json')).write_text(json.dumps(model, indent=2))
     entries.append({'threshold': frame['frame'] - 1, 'model': {'type': 'minecraft:model', 'model': 'examplemod:item/' + name}})
 item = {'model': {'type': 'minecraft:range_dispatch', 'property': 'minecraft:custom_model_data', 'index': 0, 'entries': entries, 'fallback': entries[0]['model']}}
