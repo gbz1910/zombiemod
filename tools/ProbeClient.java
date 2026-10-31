@@ -1,6 +1,12 @@
 package com.example.examplemod;
 
 import java.util.List;
+import net.minecraftforge.event.TickEvent;
+import net.minecraft.world.level.LevelSettings;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -17,8 +23,19 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid="examplemod", value=Dist.CLIENT)
 public final class ProbeClient {
-    @SubscribeEvent public static void open(ScreenEvent.Opening event) {
-        if (event.getNewScreen() instanceof TitleScreen) event.setNewScreen(new ProbeScreen());
+    private static boolean started, shown;
+    private static int worldTicks;
+    @SubscribeEvent public static void tick(TickEvent.ClientTickEvent.Post event) {
+        var mc = Minecraft.getInstance();
+        if (!started && mc.gui.screen() instanceof TitleScreen) {
+            started = true;
+            var settings = new LevelSettings("Blender probe", GameType.CREATIVE, LevelSettings.DifficultySettings.DEFAULT, true, WorldDataConfiguration.DEFAULT);
+            mc.createWorldOpenFlows().createFreshLevel("blender-probe", settings, new WorldOptions(42L, false, false), WorldPresets::createTestWorldDimensions, mc.gui.screen());
+        }
+        if (!shown && mc.player != null && ++worldTicks > 100) {
+            shown = true;
+            mc.gui.setScreen(new ProbeScreen());
+        }
     }
     static final class ProbeScreen extends Screen {
         private int ticks;
