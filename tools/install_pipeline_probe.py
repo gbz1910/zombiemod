@@ -13,7 +13,7 @@ for frame in frames:
     name = 'probe_' + str(frame['frame'])
     model = {'textures': {'all': 'minecraft:block/copper_block', 'particle': 'minecraft:block/copper_block'}, 'elements': frame['elements']}
     (models / (name + '.json')).write_text(json.dumps(model, indent=2))
-    entries.append({'threshold': (frame['frame'] - 1) / len(frames), 'model': {'type': 'minecraft:model', 'model': 'examplemod:item/' + name}})
-item = {'model': {'type': 'minecraft:range_dispatch', 'property': 'minecraft:time', 'source': 'random', 'entries': entries, 'fallback': entries[0]['model']}}
+    entries.append({'threshold': frame['frame'] - 1, 'model': {'type': 'minecraft:model', 'model': 'examplemod:item/' + name}})
+item = {'model': {'type': 'minecraft:range_dispatch', 'property': 'minecraft:custom_model_data', 'index': 0, 'entries': entries, 'fallback': entries[0]['model']}}
 (root / 'items/example_item.json').write_text(json.dumps(item, indent=2))
 print('Installed', len(frames), 'Blender-exported frames; visual validation still required.')
