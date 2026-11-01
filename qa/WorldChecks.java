@@ -88,6 +88,7 @@ public final class WorldChecks {
                 before=server(p->{wall(p,true);return hp(p);});
                 mc.options.keyUse.setDown(true);mc.options.keyAttack.setDown(true);
             }
+            case 240 -> Screenshot.grab(mc,false);
             case 251 -> {mc.options.keyAttack.setDown(false);mc.options.keyUse.setDown(false);}
             case 258 -> {
                 check(server(p->rounds(p.getMainHandItem())==11 && hp(p)==before),"one pistol shot per press and wall protection");
@@ -125,6 +126,7 @@ public final class WorldChecks {
         }
     }
 }
+
 
 
 

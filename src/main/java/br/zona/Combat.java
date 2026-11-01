@@ -110,7 +110,8 @@ final class Combat {
             var holder=level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(type);
             victim.hurtServer(level,new net.minecraft.world.damagesource.DamageSource(holder,p),gun.damage());
         }
-        Vec3 muzzle=from.add(dir.scale(.9));level.sendParticles(ParticleTypes.FLAME,muzzle.x,muzzle.y-.12,muzzle.z,2,.03,.03,.03,.01);
+        Vec3 muzzle=from.add(dir.scale(1.35)).add(dir.cross(new Vec3(0,1,0)).scale(s.aim?.05:.25));
+        level.sendParticles(ParticleTypes.SMALL_FLAME,muzzle.x,muzzle.y-.18,muzzle.z,1,.015,.015,.015,.004);
         sound(p,gun.automatic?Audio.RIFLE.get():Audio.PISTOL.get(),gun.automatic?2.4f:1.2f,gun.automatic?.75f:1.25f);
         if(p.tickCount-s.lastNoise>=7){
             s.lastNoise=p.tickCount;
@@ -121,6 +122,7 @@ final class Combat {
         }
     }
 }
+
 
 
 

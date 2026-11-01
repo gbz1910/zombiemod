@@ -2,7 +2,7 @@ name: Two Minecraft clients and dedicated Forge server
 on:
   workflow_dispatch:
   push:
-    paths: ['qa/Peer*.java','qa/peers.py','.github/workflows/peers.yml']
+    paths: ['src/**','art/runtime.zip','qa/Peer*.java','qa/peers.py','.github/workflows/peers.yml']
 permissions:
   contents: read
 jobs:
@@ -44,4 +44,5 @@ jobs:
             observer/run/screenshots/
             signals/
             build/libs/*.jar
+
 

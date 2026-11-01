@@ -2,7 +2,7 @@ name: Production dedicated server and world persistence
 on:
   workflow_dispatch:
   push:
-    paths: ['qa/dedicated.py','.github/workflows/dedicated.yml']
+    paths: ['src/**','art/runtime.zip','qa/dedicated.py','.github/workflows/dedicated.yml']
 permissions:
   contents: read
 jobs:
@@ -28,4 +28,5 @@ jobs:
           java -jar installer.jar --installServer dedicated
       - name: Start, save, restart and inspect entities
         run: python3 qa/dedicated.py
+
 

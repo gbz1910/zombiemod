@@ -2,7 +2,7 @@ name: Playtest packaged Zona Morta
 on:
   workflow_dispatch:
   push:
-    paths: ['qa/WorldChecks.java','.github/workflows/playtest.yml']
+    paths: ['src/**','art/runtime.zip','qa/WorldChecks.java','.github/workflows/playtest.yml']
 permissions:
   contents: read
 jobs:
@@ -54,5 +54,6 @@ jobs:
             host/client.log
             build/libs/zona-*.jar
           if-no-files-found: ignore
+
 
 

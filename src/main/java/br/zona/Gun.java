@@ -22,9 +22,22 @@ final class Gun extends Item {
         var value=new CustomModelData(List.of((float)frame),List.of(),List.of(),List.of());
         if(!value.equals(s.get(DataComponents.CUSTOM_MODEL_DATA))) s.set(DataComponents.CUSTOM_MODEL_DATA,value);
     }
+    @Override public boolean shouldCauseReequipAnimation(ItemStack previous,ItemStack current,boolean slotChanged){
+        return slotChanged || previous.getItem()!=current.getItem();
+    }
+    @Override public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer){
+        consumer.accept(new net.minecraftforge.client.extensions.common.IClientItemExtensions(){
+            @Override public net.minecraft.client.model.HumanoidModel.ArmPose getArmPose(net.minecraft.world.entity.LivingEntity holder,InteractionHand hand,ItemStack stack){
+                var data=stack.get(DataComponents.CUSTOM_MODEL_DATA);
+                boolean aiming=data!=null && !data.floats().isEmpty() && data.floats().getFirst()>=10;
+                return automatic || aiming ? net.minecraft.client.model.HumanoidModel.ArmPose.CROSSBOW_HOLD : net.minecraft.client.model.HumanoidModel.ArmPose.ITEM;
+            }
+        });
+    }
     @Override public InteractionResult use(Level level,Player p,InteractionHand hand){return InteractionResult.CONSUME;}
     @Override public boolean isBarVisible(ItemStack s){return true;}
     @Override public int getBarWidth(ItemStack s){return Math.round(13f*rounds(s)/capacity());}
     @Override public int getBarColor(ItemStack s){return rounds(s)==0?0xb34638:0xcab168;}
 }
+
 
