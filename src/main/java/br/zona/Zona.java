@@ -43,16 +43,18 @@ public final class Zona {
         var bus=ctx.getModBusGroup();
         ENTITIES.register(bus);ITEMS.register(bus);TABS.register(bus);
         ctx.registerConfig(ModConfig.Type.COMMON,Settings.SPEC);
-        EntityAttributeCreationEvent.getBus(bus).addListener(e->{
+        EntityAttributeCreationEvent.BUS.addListener(e->{
             e.put(COMMON.get(),Zombie.createAttributes().build());
             e.put(RUNNER.get(),Zombie.createAttributes().build());
             e.put(TANK.get(),Zombie.createAttributes().build());
         });
-        SpawnPlacementRegisterEvent.getBus(bus).addListener(e->{
+        SpawnPlacementRegisterEvent.BUS.addListener(e->{
             for(var type:java.util.List.of(COMMON,RUNNER,TANK))
                 e.register(type.get(),SpawnPlacementTypes.ON_GROUND,Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,Monster::checkMonsterSpawnRules,SpawnPlacementRegisterEvent.Operation.REPLACE);
         });
-        Combat.register();
+        Combat.register(); Spawns.register();
     }
 }
+
+
 

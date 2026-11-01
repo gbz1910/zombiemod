@@ -11,7 +11,9 @@ public final class Client {
     static final KeyMapping RELOAD=new KeyMapping("key.zona.reload",82,KeyMapping.Category.GAMEPLAY);
     @SubscribeEvent public static void keys(RegisterKeyMappingsEvent e){e.register(RELOAD);}
     @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers e){
-        for(var mob:java.util.List.of(Zona.COMMON,Zona.RUNNER,Zona.TANK))e.registerEntityRenderer(mob.get(),ZombieRenderer::new);
+        e.registerEntityRenderer(Zona.COMMON.get(),c->new InfectedRenderer(c,0));
+        e.registerEntityRenderer(Zona.RUNNER.get(),c->new InfectedRenderer(c,1));
+        e.registerEntityRenderer(Zona.TANK.get(),c->new InfectedRenderer(c,2));
     }
     private static boolean held(){var p=Minecraft.getInstance().player;return p!=null && p.getMainHandItem().getItem() instanceof Gun;}
     @SubscribeEvent public static boolean attack(InputEvent.InteractionKeyMappingTriggered.Attack e){
@@ -38,4 +40,5 @@ public final class Client {
     }
     @SubscribeEvent public static void fov(ComputeFovModifierEvent e){if(aim && held())e.setNewFovModifier(e.getFovModifier()*.72f);}
 }
+
 

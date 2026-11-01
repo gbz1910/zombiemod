@@ -61,3 +61,7 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+tasks.named('processResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(zipTree(file('art/runtime.zip'))) { include 'assets/**', 'data/**' }
+}

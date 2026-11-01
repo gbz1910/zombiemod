@@ -9,6 +9,8 @@ final class Settings {
         P_RELOAD=number("pistola.recarga_ticks",28,160), R_RELOAD=number("m4.recarga_ticks",44,160),
         P_NOISE=number("pistola.raio_de_ruido",20,96), R_NOISE=number("m4.raio_de_ruido",38,96),
         LIMIT=number("ruido.maximo_atraidos",12,64);
+    static final ForgeConfigSpec.IntValue COMMON_WEIGHT=B.defineInRange("spawns.peso_comum",14,0,200), RUNNER_WEIGHT=B.defineInRange("spawns.peso_corredor",5,0,200), TANK_WEIGHT=B.defineInRange("spawns.peso_tanque",1,0,200);
     static final ForgeConfigSpec SPEC=B.build();
 }
+
 
