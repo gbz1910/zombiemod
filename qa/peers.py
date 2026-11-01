@@ -1,5 +1,5 @@
 """Drive two real dev clients against the same localhost production Forge server."""
-import os,subprocess,time,signal,shutil
+import os,subprocess,time,signal,shutil,json,hashlib,uuid
 from pathlib import Path
 base=Path.cwd();signals=base/'signals';signals.mkdir(exist_ok=True)
 env=dict(os.environ,ZONA_SIGNALS=str(signals),ALSOFT_DRIVERS='null',LIBGL_ALWAYS_SOFTWARE='1')
@@ -8,6 +8,13 @@ mod=next((base/'build/libs').glob('zona-*.jar'));qa=next((base/'host/build/libs'
 for jar in [mod,qa]:shutil.copy2(jar,server/'mods')
 (server/'eula.txt').write_text('eula=true\n')
 (server/'server.properties').write_text('server-ip=127.0.0.1\nserver-port=25577\nonline-mode=false\nspawn-protection=0\ndifficulty=normal\nview-distance=3\nsimulation-distance=3\ngenerate-structures=false\nlevel-seed=42\n')
+# The isolated server accepts precisely the two named offline development profiles.
+profiles=[]
+for name in ('ZonaShooter','ZonaObserver'):
+    raw=hashlib.md5(('OfflinePlayer:'+name).encode('utf8')).digest()
+    profiles.append({'uuid':str(uuid.UUID(bytes=raw,version=3)),'name':name})
+(server/'whitelist.json').write_text(json.dumps(profiles))
+with (server/'server.properties').open('a') as cfg:cfg.write('white-list=true\nenforce-secure-profile=false\n')
 jobs=[]
 def start(name,cmd,cwd,extra):
     dest=base/(name+'.log');f=dest.open('w')
@@ -17,6 +24,8 @@ def wait(check,timeout):
     end=time.monotonic()+timeout
     while time.monotonic()<end:
         if check():return
+        serverlog=(base/'dedicated.log').read_text(errors='replace')
+        if 'not white-listed' in serverlog or 'ZONA_PEER_FAILED' in serverlog:raise RuntimeError(serverlog[-1500:])
         for p,f,path in jobs:
             if p.poll() is not None:raise RuntimeError(str(path)+' exited '+str(p.returncode))
         time.sleep(2)
@@ -40,5 +49,6 @@ finally:
         if p.poll() is None:os.killpg(p.pid,signal.SIGTERM)
         f.close()
         print(path.name, path.read_text(errors='replace')[-3600:])
+
 
 
