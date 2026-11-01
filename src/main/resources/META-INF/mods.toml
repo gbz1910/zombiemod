@@ -1,0 +1,21 @@
+modLoader="javafml"
+loaderVersion="[66,67)"
+license="All Rights Reserved"
+[[mods]]
+modId="zona"
+version="0.1.0"
+displayName="Zona Morta"
+description="Combate e sobrevivência durante um surto zumbi."
+[[dependencies.zona]]
+modId="forge"
+mandatory=true
+versionRange="[66.1.0,66.1.1)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.zona]]
+modId="minecraft"
+mandatory=true
+versionRange="[26.3]"
+ordering="NONE"
+side="BOTH"
+
