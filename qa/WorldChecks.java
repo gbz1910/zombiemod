@@ -37,7 +37,7 @@ public final class WorldChecks {
     static int rounds(ItemStack s){return s.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getIntOr("rounds",0);}
     static void check(boolean ok,String label){if(!ok)throw new IllegalStateException("ZONA_QA_FAILED "+label);System.out.println("ZONA_QA_PASS "+label);}
     static void select(int slot){mc().player.getInventory().setSelectedSlot(slot);}
-    static void reload(){KeyMapping.click(InputConstants.Type.KEYSYM.getOrCreate(82));}
+    static void reload(){KeyMapping.click(InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_R));}
     static float hp(ServerPlayer p){return ((LivingEntity)p.level().getEntity(dummy)).getHealth();}
     static void wall(ServerPlayer p,boolean solid){
         BlockPos pos=p.blockPosition().offset(0,1,2);p.level().setBlockAndUpdate(pos,solid?Blocks.STONE.defaultBlockState():Blocks.AIR.defaultBlockState());
@@ -119,4 +119,5 @@ public final class WorldChecks {
         }
     }
 }
+
 

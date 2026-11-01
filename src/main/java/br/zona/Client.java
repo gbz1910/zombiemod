@@ -8,7 +8,7 @@ import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid=Zona.ID,value=Dist.CLIENT)
 public final class Client {
-    static final KeyMapping RELOAD=new KeyMapping("key.zona.reload",82,KeyMapping.Category.GAMEPLAY);
+    static final KeyMapping RELOAD=new KeyMapping("key.zona.reload",com.mojang.blaze3d.platform.InputConstants.KEY_R,KeyMapping.Category.GAMEPLAY);
     @SubscribeEvent public static void keys(RegisterKeyMappingsEvent e){e.register(RELOAD);}
     @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers e){
         e.registerEntityRenderer(Zona.COMMON.get(),c->new InfectedRenderer(c,0));
@@ -40,5 +40,6 @@ public final class Client {
     }
     @SubscribeEvent public static void fov(ComputeFovModifierEvent e){if(aim && held())e.setNewFovModifier(e.getFovModifier()*.72f);}
 }
+
 
 
