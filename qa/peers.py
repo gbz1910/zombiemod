@@ -32,6 +32,7 @@ try:
         (host/'run/options.txt').write_text('onboardAccessibility:false\nmaxFps:20\nrenderDistance:2\npauseOnLostFocus:false\ntutorialStep:none\n')
         with (host/'build.gradle').open('a') as f:f.write("\nminecraft.runs.named('client') { args '--username', '"+user+"' }\n")
         start(role,['xvfb-run','-a','-s','-screen 0 960x540x24','gradle','--no-daemon','--max-workers=1','runClient'],host,{'ZONA_ROLE':role})
+        if role=='shooter':wait(lambda:'ZonaShooter joined the game' in (base/'dedicated.log').read_text(errors='replace'),300)
     wait(lambda:(signals/'server.ok').exists(),480)
     print('ZONA_MULTIPLAYER_COMPLETE')
 finally:
@@ -39,4 +40,5 @@ finally:
         if p.poll() is None:os.killpg(p.pid,signal.SIGTERM)
         f.close()
         print(path.name, path.read_text(errors='replace')[-3600:])
+
 

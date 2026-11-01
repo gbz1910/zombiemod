@@ -15,6 +15,10 @@ import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid="examplemod",value=Dist.CLIENT)
 public final class PeerClient {
+    private static boolean heardShot;
+    @SubscribeEvent public static void sound(net.minecraftforge.client.event.sound.PlaySoundEvent e){
+        if(e.getOriginalSound().getIdentifier().toString().equals("zona:pistol_fire"))heardShot=true;
+    }
     private static boolean connecting,reported,seenFull;private static int tick;
     static int rounds(ItemStack s){return s.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getIntOr("rounds",0);}
     static boolean pistol(ItemStack s){return BuiltInRegistries.ITEM.getKey(s.getItem()).toString().equals("zona:pistola");}
@@ -41,9 +45,10 @@ public final class PeerClient {
         } else if("observer".equals(role)){
             for(var player:mc.level.players())if(player!=mc.player && pistol(player.getMainHandItem())){
                 int load=rounds(player.getMainHandItem());if(load==12)seenFull=true;
-                if(seenFull && load==11){if(!reported)Screenshot.grab(mc,false);report("observer");}
+                if(seenFull && load==11 && heardShot){if(!reported)Screenshot.grab(mc,false);report("observer");}
             }
         }
     }
 }
+
 

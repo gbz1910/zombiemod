@@ -23,7 +23,12 @@ public final class Zona {
     static final DeferredRegister<CreativeModeTab> TABS=DeferredRegister.create(Registries.CREATIVE_MODE_TAB,ID);
     static Identifier id(String path){return Identifier.fromNamespaceAndPath(ID,path);}
     static RegistryObject<Item> item(String name, Function<Item.Properties,Item> factory){
-        return ITEMS.register(name,()->factory.apply(new Item.Properties().setId(ITEMS.key(name))));
+        return ITEMS.register(name,()->factory.apply(properties(name)));
+    }
+    static Item.Properties properties(String name){
+        var props=new Item.Properties().setId(ITEMS.key(name));
+        if(!name.startsWith("ovo_"))props.component(net.minecraft.core.component.DataComponents.LORE,new net.minecraft.world.item.component.ItemLore(java.util.List.of(Component.translatable("lore.zona."+name))));
+        return props;
     }
     static RegistryObject<EntityType<Infected>> infected(String name,float w,float h){
         return ENTITIES.register(name,()->EntityType.Builder.<Infected>of(Infected::new,MobCategory.MONSTER)
@@ -50,11 +55,12 @@ public final class Zona {
         });
         SpawnPlacementRegisterEvent.BUS.addListener(e->{
             for(var type:java.util.List.of(COMMON,RUNNER,TANK))
-                e.register(type.get(),SpawnPlacementTypes.ON_GROUND,Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,Monster::checkMonsterSpawnRules,SpawnPlacementRegisterEvent.Operation.REPLACE);
+                e.register(type.get(),SpawnPlacementTypes.ON_GROUND,Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,(mob,level,reason,pos,rng)->Monster.checkMonsterSpawnRules(mob,level,reason,pos,rng) && level.getLevel().getEntitiesOfClass(Infected.class,new net.minecraft.world.phys.AABB(pos).inflate(32)).size()<Settings.LOCAL_LIMIT.get(),SpawnPlacementRegisterEvent.Operation.REPLACE);
         });
         Combat.register(); Spawns.register();
     }
 }
+
 
 
 

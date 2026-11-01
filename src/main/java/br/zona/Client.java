@@ -33,13 +33,14 @@ public final class Client {
         if(armed && RELOAD.consumeClick())Combat.send(Combat.RELOAD);
         if(cooldown>0)cooldown--;
         if(fire && mc.player.getMainHandItem().getItem() instanceof Gun g && (!trigger || g.automatic) && cooldown==0 && g.rounds(mc.player.getMainHandItem())>0){
-            cooldown=g.interval();burst=Math.min(8,burst+1);mc.player.setXRot(Math.max(-89,mc.player.getXRot()-(ads?.3f:.6f)*(1+burst*.1f)));
+            cooldown=g.interval();burst=Math.min(8,burst+1);mc.player.setXRot(Math.max(-89,mc.player.getXRot()-(float)(Settings.RECOIL.get()*(ads?.5:1))*(1+burst*.1f)));
         }
         if(!fire)burst=0;
         trigger=fire;aim=ads;
     }
     @SubscribeEvent public static void fov(ComputeFovModifierEvent e){if(aim && held())e.setNewFovModifier(e.getFovModifier()*.72f);}
 }
+
 
 
 

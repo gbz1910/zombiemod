@@ -18,8 +18,13 @@ final class Settings {
         }
     }
     static final Enemy NORMAL=new Enemy("comum",22,.22,4,0), FAST=new Enemy("corredor",14,.34,3,0), HEAVY=new Enemy("tanque",70,.17,12,.85);
+    static final ForgeConfigSpec.IntValue LOCAL_LIMIT=number("spawns.limite_em_32_blocos",24,128);
+    static final ForgeConfigSpec.DoubleValue HIP_SPREAD=B.defineInRange("armas.dispersao_sem_mira",.009,0.0,.3),
+        AIM_SPREAD=B.defineInRange("armas.dispersao_com_mira",.002,0.0,.3), BURST_SPREAD=B.defineInRange("m4.dispersao_por_tiro",.0017,0.0,.1),
+        RECOIL=B.defineInRange("armas.recuo_base_graus",.6,0.0,6.0);
     static final ForgeConfigSpec SPEC=B.build();
 }
+
 
 
 

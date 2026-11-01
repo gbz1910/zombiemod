@@ -66,7 +66,7 @@ public final class WorldChecks {
                         var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);
                         check(mob!=null,"spawn "+key);mob.setNoAi(true);
                         mob.snapTo(p.getX()+i*3,p.getY(),p.getZ()+5);
-                        p.level().addFreshEntity(mob);
+                        mob.setYRot(180);mob.setYHeadRot(180);mob.setYBodyRot(180);p.level().addFreshEntity(mob);
                         if(i==0)dummy=mob.getUUID();
                     }
                     p.getFoodData().setFoodLevel(10);
@@ -101,6 +101,7 @@ public final class WorldChecks {
                 check(server(p->rounds(p.getMainHandItem())==30 && p.getInventory().getItem(3).getCount()==18),"M4 magazine and caliber");
                 mc.options.keyAttack.setDown(true);
             }
+            case 364 -> Screenshot.grab(mc,false);
             case 371 -> mc.options.keyAttack.setDown(false);
             case 386 -> {check(server(p->rounds(p.getMainHandItem())<28),"automatic burst");select(4);server(p->{p.setHealth(6);return true;});}
             case 399 -> {mc.options.keyUse.setDown(true);use();}
@@ -110,14 +111,20 @@ public final class WorldChecks {
             case 482 -> mc.options.keyUse.setDown(false);
             case 490 -> {check(server(p->p.getHealth()>before && p.getInventory().getItem(4).getCount()==1),"completed bandage heals");select(5);}
             case 503 -> {mc.options.keyUse.setDown(true);use();}
-            case 574 -> mc.options.keyUse.setDown(false);
-            case 580 -> {
+            case 518 -> server(p->{p.hurtServer(p.level(),p.damageSources().generic(),2);return true;});
+            case 519 -> mc.options.keyUse.setDown(false);
+            case 534 -> {check(server(p->p.getInventory().getItem(5).getCount()==2),"interrupted kit retains item");mc.options.keyUse.setDown(true);use();}
+            case 607 -> mc.options.keyUse.setDown(false);
+            case 615 -> {
                 check(server(p->p.getInventory().getItem(5).getCount()==1 && p.getHealth()>before+4),"completed medical kit heals");
                 select(0);mc.player.setYRot(-24);mc.player.setXRot(0);Screenshot.grab(mc,false);
             }
-            case 605 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
+            case 630 -> {select(1);mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);}
+            case 638 -> Screenshot.grab(mc,false);
+            case 655 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
         }
     }
 }
+
 
 

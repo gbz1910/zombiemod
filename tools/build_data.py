@@ -19,3 +19,10 @@ recipe('municao_556',16,['IN','CG','PG'],{'I':'minecraft:iron_ingot','N':'minecr
 recipe('pistola',1,['III',' LR','  L'],{'I':'minecraft:iron_ingot','L':'minecraft:leather','R':'minecraft:redstone'})
 recipe('m4',1,['IBI','RPI','L L'],{'I':'minecraft:iron_ingot','B':'minecraft:iron_block','R':'minecraft:redstone','P':'minecraft:piston','L':'minecraft:leather'})
 
+lore={'pistola':'Semiautomática • 9 mm • carregue com R','m4':'Automática • 5,56 mm • segure o gatilho','municao_9mm':'Cartucho curto para a pistola de serviço.','municao_556':'Cartucho de fuzil para a M4.','bandagem':'Mantenha o uso para tratar ferimentos leves.','kit':'Tratamento prolongado. Sofrer dano interrompe o uso.'}
+lang.update({'lore.zona.'+k:v for k,v in lore.items()})
+lang['death.attack.zona.bala']='%1$s foi atingido por %2$s'
+for locale in ['pt_br','en_us']:write('assets/zona/lang/'+locale+'.json',lang)
+write('data/zona/damage_type/bala.json',{'exhaustion':.1,'message_id':'zona.bala','scaling':'never'})
+for tag in ('bypasses_cooldown','is_projectile'):
+    write('data/minecraft/tags/damage_type/'+tag+'.json',{'replace':False,'values':['zona:bala']})

@@ -9,6 +9,7 @@ studio.mkdir(parents=True,exist_ok=True)
 def write(path, data):
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
+bpy.context.preferences.filepaths.save_version=0
 palette={'steel':'38434b','wear':'707575','black':'22282b','grip':'424344','bronze':'ae8044','brass':'d7af62','cloth':'d1c7ac','red':'a44637','kit':'526255','label':'e8d6b0','blue':'3f6473','orange':'cb7739','skin':'879276','bruise':'6b775e','pants':'3d454c','strap':'64543f'}
 mats={}
 for name,h in palette.items():
@@ -43,19 +44,20 @@ def export_item(name,parts,gun=False):
     if gun:
         scene=bpy.context.scene
         # Idle, draw, recoil and magazine extraction poses; marker names are editable in the timeline.
-        frames=[1,5,9,13,17,21,25,29,33]
-        for f,label in zip(frames,['idle','equip','ready','fire','recover','unlock','magazine out','insert','seat']):
+        frames=[1,5,9,13,17,21,25,29,33,37]
+        for f,label in zip(frames,['idle','equip','ready','fire','recover','unlock','magazine out','insert','seat','breathe']):
             scene.timeline_markers.new(label,frame=f)
         for ob in objs:
             start=ob.location.copy()
             for f in frames:
                 ob.location=start.copy()
                 if f==5: ob.location.z-=2.5
+                if f==37: ob.location.z+=.12
                 if f==13: ob.location.y-=1.4 if ob.name.startswith('slide') else .55
                 if ob.name.startswith('mag'):
                     ob.location.z-= {21:1.5,25:5,29:2}.get(f,0)
                 ob.keyframe_insert(data_path='location',frame=f)
-        scene.frame_end=33
+        scene.frame_end=37
     entries=[]
     for i,f in enumerate(frames):
         bpy.context.scene.frame_set(f); elements=[]
@@ -69,6 +71,17 @@ def export_item(name,parts,gun=False):
         model=name+('_'+str(i) if gun else '')
         write(assets/'models/item'/f'{model}.json',{'textures':tex,'elements':elements,'display':display})
         entries.append({'threshold':i,'model':{'type':'minecraft:model','model':'zona:item/'+model}})
+    if gun:
+        import copy
+        for i in range(10):
+            regular=assets/'models/item'/f'{name}_{i}.json'
+            aimed=json.loads(regular.read_text())
+            for view in ('firstperson_righthand','firstperson_lefthand'):
+                aimed['display'][view]['translation']=[-7.8,5.2,3.0]
+                aimed['display'][view]['scale']=[.72,.72,.72]
+            variant=f'{name}_aim_{i}'
+            write(assets/'models/item'/f'{variant}.json',aimed)
+            entries.append({'threshold':10+i,'model':{'type':'minecraft:model','model':'zona:item/'+variant}})
     write(assets/'items'/f'{name}.json',{'model':{'type':'minecraft:range_dispatch','property':'minecraft:custom_model_data','index':0,'entries':entries,'fallback':entries[0]['model']} if gun else entries[0]['model']})
     bpy.context.scene.frame_set(1);bpy.ops.wm.save_as_mainfile(filepath=str(studio/(name+'.blend')),compress=True)
 P=[]
@@ -97,4 +110,5 @@ for item,hue,height in [('municao_9mm','blue',3.2),('municao_556','orange',5.2)]
     for x in (4,7,10):
         part('case',x,7,6,x+1.8,7+height,8,'brass');part('bullet',x+.25,7+height,6.25,x+1.55,8.4+height,7.75,'bronze')
     export_item(item,P);P.clear()
+
 
