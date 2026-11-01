@@ -1,0 +1,57 @@
+name: Playtest packaged Zona Morta
+on:
+  workflow_dispatch:
+  push:
+    paths: ['qa/**','.github/workflows/playtest.yml']
+permissions:
+  contents: read
+jobs:
+  playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      ALSOFT_DRIVERS: 'null'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            25
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.7.1'
+      - name: Build installable jar
+        run: gradle --no-daemon build
+      - name: Prepare isolated Forge host
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers
+          curl -fsSL --retry 3 https://maven.minecraftforge.net/net/minecraftforge/forge/26.3-66.1.0/forge-26.3-66.1.0-mdk.zip -o mdk.zip
+          unzip -q mdk.zip -d host
+          mkdir -p host/run/mods
+          cp build/libs/zona-*.jar host/run/mods/
+          sha256sum host/run/mods/*.jar
+          cp qa/WorldChecks.java host/src/main/java/com/example/examplemod/
+          printf 'onboardAccessibility:false\nmaxFps:30\nrenderDistance:3\npauseOnLostFocus:false\ntutorialStep:none\n' > host/run/options.txt
+      - name: Run client and integrated server
+        working-directory: host
+        run: |
+          set -o pipefail
+          timeout 650 xvfb-run -a -s '-screen 0 1280x720x24' gradle --no-daemon runClient 2>&1 | tee client.log
+          grep -q ZONA_QA_WORLD_COMPLETE client.log
+      - name: Package evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playtest-results
+          path: |
+            host/run/screenshots/
+            host/run/logs/latest.log
+            host/run/crash-reports/
+            host/client.log
+            build/libs/zona-*.jar
+          if-no-files-found: ignore
+
