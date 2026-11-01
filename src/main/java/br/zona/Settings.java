@@ -10,7 +10,16 @@ final class Settings {
         P_NOISE=number("pistola.raio_de_ruido",20,96), R_NOISE=number("m4.raio_de_ruido",38,96),
         LIMIT=number("ruido.maximo_atraidos",12,64);
     static final ForgeConfigSpec.IntValue COMMON_WEIGHT=B.defineInRange("spawns.peso_comum",14,0,200), RUNNER_WEIGHT=B.defineInRange("spawns.peso_corredor",5,0,200), TANK_WEIGHT=B.defineInRange("spawns.peso_tanque",1,0,200);
+    static final class Enemy {
+        final ForgeConfigSpec.DoubleValue health,speed,damage,knockback;
+        Enemy(String name,double hp,double move,double hit,double kb){
+            health=B.defineInRange(name+".vida",hp,1.0,500.0); speed=B.defineInRange(name+".velocidade",move,.01,1.0);
+            damage=B.defineInRange(name+".dano",hit,0.0,80.0); knockback=B.defineInRange(name+".resistencia_empurrao",kb,0.0,1.0);
+        }
+    }
+    static final Enemy NORMAL=new Enemy("comum",22,.22,4,0), FAST=new Enemy("corredor",14,.34,3,0), HEAVY=new Enemy("tanque",70,.17,12,.85);
     static final ForgeConfigSpec SPEC=B.build();
 }
+
 
 

@@ -6,7 +6,7 @@ import net.minecraftforge.event.level.LevelEvent;
 final class Spawns {
     static void register(){
         LevelEvent.PotentialSpawns.BUS.addListener(e->{
-            if(e.getMobCategory()!=MobCategory.MONSTER || e.getSpawnerDataList().stream().noneMatch(w->w.value().type()==EntityType.ZOMBIE))return false;
+            if(e.getMobCategory()!=MobCategory.MONSTER || e.getSpawnerDataList().stream().noneMatch(w->net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(w.value().type()).toString().equals("minecraft:zombie")))return false;
             add(e,Zona.COMMON.get(),Settings.COMMON_WEIGHT.get());add(e,Zona.RUNNER.get(),Settings.RUNNER_WEIGHT.get());add(e,Zona.TANK.get(),Settings.TANK_WEIGHT.get());return false;
         });
     }
@@ -14,4 +14,5 @@ final class Spawns {
         if(weight>0)event.addSpawnerData(new MobSpawnSettings.SpawnerData(type,ConstantInt.of(1)),weight);
     }
 }
+
 

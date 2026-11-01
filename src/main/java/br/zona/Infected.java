@@ -12,14 +12,16 @@ public final class Infected extends Zombie {
     public Infected(EntityType<? extends Zombie> type,Level level){
         super(type,level);
         boolean runner=type==Zona.RUNNER.get(),tank=type==Zona.TANK.get();
-        getAttribute(Attributes.MAX_HEALTH).setBaseValue(tank?70:runner?14:22);
-        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(tank?.17:runner?.34:.22);
-        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(tank?12:runner?3:4);
-        getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(tank?.85:0);
+        var profile=tank?Settings.HEAVY:runner?Settings.FAST:Settings.NORMAL;
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(profile.health.get());
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(profile.speed.get());
+        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(profile.damage.get());
+        getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(profile.knockback.get());
         setHealth(getMaxHealth());
     }
     @Override protected void defineSynchedData(SynchedEntityData.Builder b){super.defineSynchedData(b);b.define(WINDUP,0);}
     int windup(){return getEntityData().get(WINDUP);}
+    @Override protected net.minecraft.sounds.SoundEvent getAmbientSound(){return (getType()==Zona.TANK.get()?Audio.TANK:getType()==Zona.RUNNER.get()?Audio.RUNNER:Audio.COMMON).get();}
     @Override protected boolean convertsInWater(){return false;}
     @Override public boolean doHurtTarget(ServerLevel level,Entity victim){
         if(getType()!=Zona.TANK.get())return super.doHurtTarget(level,victim);
@@ -37,4 +39,6 @@ public final class Infected extends Zombie {
             intended=null;recovery=24;}
     }
 }
+
+
 

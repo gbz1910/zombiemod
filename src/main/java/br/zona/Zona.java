@@ -41,7 +41,7 @@ public final class Zona {
     }
     public Zona(FMLJavaModLoadingContext ctx){
         var bus=ctx.getModBusGroup();
-        ENTITIES.register(bus);ITEMS.register(bus);TABS.register(bus);
+        Audio.SOUNDS.register(bus); ENTITIES.register(bus);ITEMS.register(bus);TABS.register(bus);
         ctx.registerConfig(ModConfig.Type.COMMON,Settings.SPEC);
         EntityAttributeCreationEvent.BUS.addListener(e->{
             e.put(COMMON.get(),Zombie.createAttributes().build());
@@ -55,6 +55,7 @@ public final class Zona {
         Combat.register(); Spawns.register();
     }
 }
+
 
 
 

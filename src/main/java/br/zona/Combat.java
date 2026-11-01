@@ -56,7 +56,7 @@ final class Combat {
             case HIP -> s.aim=false;
             case RELOAD -> {
                 if(s.reload==0 && g.rounds(s.weapon)<g.capacity() && count(p,g.ammo())>0){
-                    s.firing=false;s.burst=0;s.reload=g.reloadTime();sound(p,SoundEvents.IRON_TRAPDOOR_OPEN,.65f,1.4f);
+                    s.firing=false;s.burst=0;s.reload=g.reloadTime();sound(p,Audio.OUT.get(),.65f,1.4f);
                 }
             }
         }
@@ -73,7 +73,7 @@ final class Combat {
             var stack=inv.getItem(i);if(!stack.is(g.ammo()))continue;
             int take=Math.min(stack.getCount(),need);stack.shrink(take);rounds+=take;need-=take;
         }
-        g.load(s.weapon,rounds);sound(p,SoundEvents.IRON_TRAPDOOR_CLOSE,.6f,1.5f);
+        g.load(s.weapon,rounds);sound(p,Audio.IN.get(),.6f,1.5f);
     }
     static void tick(ServerPlayer p){
         State s=state(p);if(s==null)return;Gun gun=(Gun)s.weapon.getItem();
@@ -90,11 +90,11 @@ final class Combat {
         p.level().playSound(null,p.blockPosition(),sound,SoundSource.PLAYERS,volume,pitch);
     }
     static void shoot(ServerPlayer p,State s,Gun gun){
-        if(s.cooldown>0 || s.reload>0 || !p.isAlive() || p.getMainHandItem()!=s.weapon)return;
+        if(p.isSpectator() || p.getCooldowns().isOnCooldown(s.weapon) || s.cooldown>0 || s.reload>0 || !p.isAlive() || p.getMainHandItem()!=s.weapon)return;
         s.cooldown=gun.interval();
         int left=gun.rounds(s.weapon);
-        if(left==0){sound(p,SoundEvents.LEVER_CLICK,.3f,1.7f);s.firing=false;return;}
-        gun.load(s.weapon,left-1);s.flash=2;s.burst=Math.min(14,s.burst+1);
+        if(left==0){sound(p,Audio.DRY.get(),.3f,1.7f);s.firing=false;return;}
+        p.getCooldowns().addCooldown(s.weapon,gun.interval());gun.load(s.weapon,left-1);s.flash=2;s.burst=Math.min(14,s.burst+1);
         ServerLevel level=p.level();Vec3 from=p.getEyePosition();var rng=p.getRandom();
         double spread=(s.aim?.002:.009)+(gun.automatic?.0017*s.burst:.001);
         Vec3 dir=p.getLookAngle().add(rng.nextGaussian()*spread,rng.nextGaussian()*spread,rng.nextGaussian()*spread).normalize();
@@ -107,7 +107,7 @@ final class Combat {
         }
         if(victim!=null)victim.hurtServer(level,p.damageSources().playerAttack(p),gun.damage());
         Vec3 muzzle=from.add(dir.scale(.9));level.sendParticles(ParticleTypes.FLAME,muzzle.x,muzzle.y-.12,muzzle.z,2,.03,.03,.03,.01);
-        sound(p,gun.automatic?SoundEvents.FIREWORK_ROCKET_BLAST:SoundEvents.FIREWORK_ROCKET_LARGE_BLAST,gun.automatic?2.4f:1.2f,gun.automatic?.75f:1.25f);
+        sound(p,gun.automatic?Audio.RIFLE.get():Audio.PISTOL.get(),gun.automatic?2.4f:1.2f,gun.automatic?.75f:1.25f);
         if(s.burst==1 || s.burst%4==0){
             int radius=(gun.automatic?Settings.R_NOISE:Settings.P_NOISE).get(),n=0;
             for(var z:level.getEntitiesOfClass(Infected.class,p.getBoundingBox().inflate(radius))){
@@ -116,4 +116,5 @@ final class Combat {
         }
     }
 }
+
 
