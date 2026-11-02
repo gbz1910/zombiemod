@@ -27,6 +27,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 @Mod.EventBusSubscriber(modid="examplemod",value=Dist.CLIENT)
@@ -56,6 +57,15 @@ public final class WorldChecks {
     }
     static void use(){mc().gameMode.useItem(mc().player,InteractionHand.MAIN_HAND);}
     static float before,healed;
+    static String headReport(ServerPlayer p){
+        var target=p.level().getEntity(dummy);var from=p.getEyePosition();var to=from.add(p.getLookAngle().scale(80));
+        boolean body=target.getBoundingBox().clip(from,to).isPresent();String head="unknown";
+        try{var method=target.getClass().getDeclaredMethod("headBox");method.setAccessible(true);var box=(net.minecraft.world.phys.AABB)method.invoke(target);head=box.clip(from,to).isPresent()+"/"+box;}
+        catch(Exception ex){head="error:"+ex.getClass().getSimpleName();}
+        return "hp="+hp(p)+", rounds="+rounds(p.getMainHandItem())+", look="+p.getXRot()+"/"+p.getYRot()+", bodyClip="+body+", headClip="+head;
+    }
+    static float[] aimAtDummy(){return server(p->{var target=p.level().getEntity(dummy);var eye=p.getEyePosition();var point=new net.minecraft.world.phys.Vec3(target.getX(),target.getY()+target.getBbHeight()*.90,target.getZ());var delta=point.subtract(eye);float yaw=(float)Math.toDegrees(Math.atan2(-delta.x,delta.z));float pitch=(float)-Math.toDegrees(Math.atan2(delta.y,Math.sqrt(delta.x*delta.x+delta.z*delta.z)));p.setYRot(yaw);p.setXRot(pitch);p.setYHeadRot(yaw);p.setYBodyRot(yaw);return new float[]{yaw,pitch};});}
+    @SubscribeEvent public static void freezeMobAi(EntityJoinLevelEvent event){if(event.getEntity() instanceof Mob mob)mob.setNoAi(true);}
     @SubscribeEvent public static void tick(TickEvent.ClientTickEvent.Post ignored){
         var mc=mc();
         if(!started && mc.gui.screen() instanceof TitleScreen){
@@ -68,7 +78,7 @@ public final class WorldChecks {
         switch(t){
             case 100 -> {
                 mc.player.setXRot(0);mc.player.setYRot(0);
-                server(p->{p.setInvulnerable(true);var inv=p.getInventory();
+                server(p->{var inv=p.getInventory();
                     String[] ids={"pistola","m4","municao_9mm","municao_556","bandagem","kit","machete","lanterna","lata_comida","garrafa_agua_limpa","sucata_metalica","mola_arma","gatilho","cano_arma","corpo_pistola","receptor_m4"};
                     int[] counts={1,1,17,48,2,2,1,1,2,2,3,1,1,1,1,1};
                     for(int i=0;i<ids.length;i++){check(item(ids[i])!=Items.AIR,"registered "+ids[i]);inv.setItem(i,new ItemStack(item(ids[i]),counts[i]));}
@@ -129,9 +139,9 @@ public final class WorldChecks {
                 check((int)shotState[0]==11 && shotState[1]==before,"one pistol shot per press and wall protection (rounds="+shotState[0]+", hp="+shotState[1]+", before="+before+")");
                 server(p->{wall(p,false);return true;});mc.player.setXRot(0);
             }
-            case 265 -> mc.options.keyAttack.setDown(true);
+            case 265 -> {float[] look=aimAtDummy();mc.player.setYRot(look[0]);mc.player.setXRot(look[1]);mc.options.keyAttack.setDown(true);}
             case 269 -> mc.options.keyAttack.setDown(false);
-            case 285 -> {check(server(p->hp(p)==10),"pistol headshot doubles torso damage");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
+            case 285 -> {String state=server(WorldChecks::headReport);check(server(p->hp(p)==10),"pistol headshot doubles torso damage ("+state+")");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
             case 286 -> mc.options.keyAttack.setDown(false);
             case 300 -> {check(server(p->hp(p)==4),"pistol torso shot uses normal damage");mc.player.setXRot(0);select(1);}
             case 294 -> select(1);
