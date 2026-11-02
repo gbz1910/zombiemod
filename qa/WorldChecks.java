@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.InteractionHand;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraftforge.api.distmarker.Dist;
@@ -47,7 +48,7 @@ public final class WorldChecks {
     static void recipeCheck(ServerPlayer p,String name,int w,int h,ItemStack[] items){check(recipe(p,w,h,items).equals(name),"crafting recipe "+name);}
     static int rounds(ItemStack s){return s.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getIntOr("rounds",0);}
     static void check(boolean ok,String label){if(!ok)throw new IllegalStateException("ZONA_QA_FAILED "+label);System.out.println("ZONA_QA_PASS "+label);}
-    static void select(int slot){mc().player.getInventory().setSelectedSlot(slot);}
+    static void select(int slot){mc().player.getInventory().setSelectedSlot(slot);mc().getConnection().send(new ServerboundSetCarriedItemPacket(slot));}
     static void reload(){KeyMapping.click(InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_R));}
     static float hp(ServerPlayer p){return ((LivingEntity)p.level().getEntity(dummy)).getHealth();}
     static void wall(ServerPlayer p,boolean solid){
@@ -116,7 +117,8 @@ public final class WorldChecks {
             }
             case 185 -> reload();
             case 230 -> {
-                check(server(p->rounds(p.getMainHandItem())==12 && p.getInventory().getItem(2).getCount()==5),"pistol magazine and inventory debit");
+                String magazine=server(p->rounds(p.getMainHandItem())+":"+p.getInventory().getItem(2).getCount());
+                check(magazine.equals("12:5"),"pistol magazine and inventory debit (rounds:ammo="+magazine+")");
                 before=server(p->{wall(p,true);return hp(p);});
                 mc.options.keyUse.setDown(true);mc.options.keyAttack.setDown(true);
             }
@@ -134,7 +136,8 @@ public final class WorldChecks {
             case 300 -> {check(server(p->hp(p)==4),"pistol torso shot uses normal damage");mc.player.setXRot(0);select(1);}
             case 296 -> reload();
             case 355 -> {
-                check(server(p->rounds(p.getMainHandItem())==30 && p.getInventory().getItem(3).getCount()==18),"M4 magazine and caliber");
+                String magazine=server(p->rounds(p.getMainHandItem())+":"+p.getInventory().getItem(3).getCount());
+                check(magazine.equals("30:18"),"M4 magazine and caliber (rounds:ammo="+magazine+")");
                 mc.options.keyAttack.setDown(true);
             }
             case 364 -> Screenshot.grab(mc,false);
