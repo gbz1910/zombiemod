@@ -134,6 +134,7 @@ public final class WorldChecks {
             case 285 -> {check(server(p->hp(p)==10),"pistol headshot doubles torso damage");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
             case 286 -> mc.options.keyAttack.setDown(false);
             case 300 -> {check(server(p->hp(p)==4),"pistol torso shot uses normal damage");mc.player.setXRot(0);select(1);}
+            case 294 -> select(1);
             case 296 -> reload();
             case 355 -> {
                 String magazine=server(p->rounds(p.getMainHandItem())+":"+p.getInventory().getItem(3).getCount());
@@ -196,6 +197,7 @@ public final class WorldChecks {
         }
     }
 }
+
 
 
 
