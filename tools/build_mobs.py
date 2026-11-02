@@ -9,19 +9,24 @@ texdir.mkdir(exist_ok=True,parents=True)
 java=['package br.zona;','import net.minecraft.client.model.geom.*;','import net.minecraft.client.model.geom.builders.*;','final class InfectedArt {']
 bones=['torso','head','arm_l','arm_r','leg_l','leg_r']
 clips=['idle','walk','run','attack','hurt','death','windup']
-for kind,(key,W,H,arm,bodyColor) in enumerate([('comum',8,12,4,'436978'),('corredor',6,11,3,'ad6a3b'),('tanque',13,16,6,'58644e')]):
+for kind,(key,W,H,arm,accent) in enumerate([('comum',8,12,4,'436978'),('corredor',6,11,3,'ad6a3b'),('tanque',13,16,6,'58644e')]):
     bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
     bpy.context.preferences.filepaths.save_version=0
     hip=24-(12 if kind!=2 else 15)
     pivots=[(0,hip,0),(0,hip-H,0),(-(W+arm)/2,hip-H+1,0),((W+arm)/2,hip-H+1,0),(-W/4,hip,0),(W/4,hip,0)]
-    palette=['879077',bodyColor,'3e4651','353d39','a39274','76504a','b3ac81','4d5949']
-    img=bpy.data.images.new(key,128,128)
-    pix=[];rng=random.Random(key)
-    for y in range(128):
-        for x in range(128):
-            c=palette[min(7,(3-y//32)*2+x//64)];shade=rng.choice([.91,.96,1,1,1.04])
-            pix.extend([int(c[i:i+2],16)/255*shade for i in (0,2,4)]+[1])
-    img.pixels[:]=pix;img.filepath_raw=str(texdir/(key+'.png'));img.file_format='PNG';img.save()
+    # The second palette tile feeds the torso UVs.  Export three complete skins so
+    # a server-synchronised variant can change only the shirt, not the silhouette.
+    shirts=['25272a','3f7648','9b3030'] # black, green, red
+    palette=['879077',shirts[0],'3e4651','353d39','a39274','76504a','b3ac81',accent]
+    for variant,shirt in enumerate(shirts):
+        palette[1]=shirt
+        img=bpy.data.images.new(key+'_'+str(variant),128,128)
+        pix=[];rng=random.Random(key+str(variant))
+        for y in range(128):
+            for x in range(128):
+                c=palette[min(7,(3-y//32)*2+x//64)];shade=rng.choice([.91,.96,1,1,1.04])
+                pix.extend([int(c[i:i+2],16)/255*shade for i in (0,2,4)]+[1])
+        img.pixels[:]=pix;img.filepath_raw=str(texdir/(key+'_'+str(variant)+'.png'));img.file_format='PNG';img.save()
     ar=bpy.data.armatures.new(key);rig=bpy.data.objects.new(key+'_rig',ar);bpy.context.collection.objects.link(rig);bpy.context.view_layer.objects.active=rig;rig.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT')
     for n,(x,y,z) in zip(bones,pivots):
@@ -44,9 +49,11 @@ for kind,(key,W,H,arm,bodyColor) in enumerate([('comum',8,12,4,'436978'),('corre
     box(0,(-W/2+1,-H,-thick/2-.2),(1.6,H-2,.5),4)
     head=9 if kind==2 else 7 if kind==1 else 8
     box(1,(-head/2,-head,-head/2),(head,head,head),0)
-    box(1,(-head/2,-head,-head/2-.1),(head,1.9,head+.2),7)
-    for x in [-head/2+1,head/2-2.5]:box(1,(x,-head*.57,-head/2-.2),(1.5,.8,.35),6)
-    box(1,(-1,-1.9,-head/2-.15),(2.8,.8,.2),5)
+    # Flat face layers sit well in front of the head.  The old deep cap wrapped the
+    # whole head and almost shared the front face, which can flicker while moving.
+    box(1,(-head/2-.12,-head,-head/2-.45),(head+.24,1.9,.24),7)
+    for x in [-head/2+1,head/2-2.5]:box(1,(x,-head*.57,-head/2-.48),(1.5,.8,.18),6)
+    box(1,(-1,-1.9,-head/2-.46),(2.8,.8,.16),5)
     for i in (2,3):
         length=15 if kind==2 else 12
         box(i,(-arm/2,0,-arm/2),(arm,length,arm),0)
@@ -68,7 +75,7 @@ for kind,(key,W,H,arm,bodyColor) in enumerate([('comum',8,12,4,'436978'),('corre
         start=ci*40+1;bpy.context.scene.timeline_markers.new(clip,frame=start)
         section=[]
         for j in range(5):
-            phase=j*math.pi/2;s=math.sin(phase);bend=[.13,.38,.09][kind]
+            phase=j*math.pi/2;s=math.sin(phase);bend=[.13,0,.09][kind]
             pitch=[bend,-.1,-.45,-.55,0,0];roll=[0,-.06,-.08,.1,0,0]
             if clip=='idle':pitch[1]+=.055*s;pitch[2]+=.065*s
             if clip in ('walk','run'):

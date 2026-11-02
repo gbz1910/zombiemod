@@ -96,22 +96,29 @@ final class Combat {
         if(left==0){sound(p,Audio.DRY.get(),.3f,1.7f);s.firing=false;return;}
         p.getCooldowns().addCooldown(s.weapon,gun.interval());gun.load(s.weapon,left-1);s.flash=2;s.burst=Math.min(14,s.burst+1);
         ServerLevel level=p.level();Vec3 from=p.getEyePosition();var rng=p.getRandom();
-        double spread=(s.aim?Settings.AIM_SPREAD.get():Settings.HIP_SPREAD.get())+(gun.automatic?Settings.BURST_SPREAD.get()*s.burst:.001);
+        // ADS is intentionally almost exact.  Hip fire remains loose enough to make
+        // aiming worthwhile, while the generous collision envelope follows the new
+        // entity hitboxes instead of requiring a pixel-perfect ray.
+        double spread=(s.aim?Settings.AIM_SPREAD.get():Settings.HIP_SPREAD.get())+(gun.automatic?Settings.BURST_SPREAD.get()*s.burst:.0005);
         Vec3 dir=p.getLookAngle().add(rng.nextGaussian()*spread,rng.nextGaussian()*spread,rng.nextGaussian()*spread).normalize();
         Vec3 far=from.add(dir.scale(80));
-        Vec3 end=level.clip(new ClipContext(from,far,ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE,p)).getLocation();
-        double nearest=from.distanceToSqr(end);LivingEntity victim=null;
-        for(var entity:level.getEntitiesOfClass(LivingEntity.class,new AABB(from,end).inflate(.25),e->e!=p && e.isAlive() && !e.isSpectator())){
-            var hit=entity.getBoundingBox().clip(from,end);
-            if(hit.isPresent() && hit.get().distanceToSqr(from)<nearest){nearest=hit.get().distanceToSqr(from);victim=entity;}
+        Vec3 impact=level.clip(new ClipContext(from,far,ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE,p)).getLocation();
+        double nearest=from.distanceToSqr(impact);LivingEntity victim=null;
+        for(var entity:level.getEntitiesOfClass(LivingEntity.class,new AABB(from,impact).inflate(.7),e->e!=p && e.isAlive() && !e.isSpectator())){
+            var hit=entity.getBoundingBox().inflate(.22).clip(from,impact);
+            if(hit.isPresent() && hit.get().distanceToSqr(from)<nearest){nearest=hit.get().distanceToSqr(from);impact=hit.get();victim=entity;}
         }
         if(victim!=null){
             var type=net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DAMAGE_TYPE,Zona.id("bala"));
             var holder=level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(type);
+            // Vanilla i-frames would make a fast M4 appear to miss most of its shots.
+            victim.invulnerableTime=0;
             victim.hurtServer(level,new net.minecraft.world.damagesource.DamageSource(holder,p),gun.damage());
         }
         Vec3 muzzle=from.add(dir.scale(1.35)).add(dir.cross(new Vec3(0,1,0)).scale(s.aim?.05:.25));
         level.sendParticles(ParticleTypes.SMALL_FLAME,muzzle.x,muzzle.y-.18,muzzle.z,1,.015,.015,.015,.004);
+        trail(level,muzzle,impact);
+        level.sendParticles(ParticleTypes.CRIT,impact.x,impact.y,impact.z,2,.025,.025,.025,.01);
         sound(p,gun.automatic?Audio.RIFLE.get():Audio.PISTOL.get(),gun.automatic?2.4f:1.2f,gun.automatic?.75f:1.25f);
         if(p.tickCount-s.lastNoise>=7){
             s.lastNoise=p.tickCount;
@@ -119,6 +126,13 @@ final class Combat {
             for(var z:level.getEntitiesOfClass(Infected.class,p.getBoundingBox().inflate(radius))){
                 if(z.distanceToSqr(p)>radius*radius)continue;z.setTarget(p);if(++n>=Settings.LIMIT.get())break;
             }
+        }
+    }
+    private static void trail(ServerLevel level,Vec3 from,Vec3 to){
+        Vec3 delta=to.subtract(from);int dots=Math.clamp((int)(delta.length()*1.4),2,16);
+        for(int i=1;i<=dots;i++){
+            Vec3 point=from.add(delta.scale(i/(double)dots));
+            level.sendParticles(ParticleTypes.END_ROD,point.x,point.y,point.z,1,.006,.006,.006,.002);
         }
     }
 }

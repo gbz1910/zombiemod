@@ -34,7 +34,7 @@ public final class Zona {
         return ENTITIES.register(name,()->EntityType.Builder.<Infected>of(Infected::new,MobCategory.MONSTER)
             .sized(w,h).clientTrackingRange(8).build(ENTITIES.key(name)));
     }
-    public static final RegistryObject<EntityType<Infected>> COMMON=infected("comum",.6f,1.95f), RUNNER=infected("corredor",.54f,1.8f), TANK=infected("tanque",1.15f,2.6f);
+    public static final RegistryObject<EntityType<Infected>> COMMON=infected("comum",.72f,1.98f), RUNNER=infected("corredor",.66f,1.92f), TANK=infected("tanque",1.3f,2.7f);
     static final RegistryObject<Item> NINE=item("municao_9mm",Item::new), NATO=item("municao_556",Item::new);
     static final RegistryObject<Item> PISTOL=item("pistola",p->new Gun(p,false)), M4=item("m4",p->new Gun(p,true));
     static final RegistryObject<Item> BANDAGE=item("bandagem",p->new Treatment(p,32,4)), KIT=item("kit",p->new Treatment(p,65,12));

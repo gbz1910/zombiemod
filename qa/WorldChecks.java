@@ -69,11 +69,14 @@ public final class WorldChecks {
                         mob.setYRot(180);mob.setYHeadRot(180);mob.setYBodyRot(180);p.level().addFreshEntity(mob);
                         if(i==0)dummy=mob.getUUID();
                     }
+                    var cow=EntityType.COW.create(p.level(),EntitySpawnReason.COMMAND);
+                    cow.snapTo(p.getX()-3,p.getY(),p.getZ()+5);p.level().addFreshEntity(cow);
                     p.getFoodData().setFoodLevel(10);
                     for(int x=-3;x<=9;x++)for(int z=-2;z<=7;z++)p.level().setBlockAndUpdate(p.blockPosition().offset(x,4,z),Blocks.STONE.defaultBlockState());
                     return true;
                 });
             }
+            case 108 -> check(server(p->p.level().getEntitiesOfClass(net.minecraft.world.entity.animal.Cow.class,p.getBoundingBox().inflate(12)).isEmpty()),"non-zombie mobs blocked");
             case 115 -> {select(0);mc.options.keyAttack.setDown(true);}
             case 120 -> mc.options.keyAttack.setDown(false);
             case 130 -> {check(server(p->rounds(p.getMainHandItem()))==0,"empty trigger");reload();}

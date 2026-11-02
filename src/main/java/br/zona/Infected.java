@@ -3,10 +3,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.*;
 public final class Infected extends Zombie {
     static final EntityDataAccessor<Integer> WINDUP=SynchedEntityData.defineId(Infected.class,EntityDataSerializers.INT);
+    static final EntityDataAccessor<Integer> VARIANT=SynchedEntityData.defineId(Infected.class,EntityDataSerializers.INT);
     private int recovery;
     private LivingEntity intended;
     public Infected(EntityType<? extends Zombie> type,Level level){
@@ -19,8 +24,16 @@ public final class Infected extends Zombie {
         getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(profile.knockback.get());
         setHealth(getMaxHealth());
     }
-    @Override protected void defineSynchedData(SynchedEntityData.Builder b){super.defineSynchedData(b);b.define(WINDUP,0);}
+    @Override protected void defineSynchedData(SynchedEntityData.Builder b){super.defineSynchedData(b);b.define(WINDUP,0);b.define(VARIANT,0);}
     int windup(){return getEntityData().get(WINDUP);}
+    int variant(){return getEntityData().get(VARIANT);}
+    @Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor level,DifficultyInstance difficulty,EntitySpawnReason reason,SpawnGroupData data){
+        var result=super.finalizeSpawn(level,difficulty,reason,data);
+        getEntityData().set(VARIANT,getRandom().nextInt(3));
+        return result;
+    }
+    @Override protected void addAdditionalSaveData(ValueOutput output){super.addAdditionalSaveData(output);output.putInt("Variant",variant());}
+    @Override protected void readAdditionalSaveData(ValueInput input){super.readAdditionalSaveData(input);getEntityData().set(VARIANT,Math.floorMod(input.getIntOr("Variant",0),3));}
     @Override protected net.minecraft.sounds.SoundEvent getAmbientSound(){return (getType()==Zona.TANK.get()?Audio.TANK:getType()==Zona.RUNNER.get()?Audio.RUNNER:Audio.COMMON).get();}
     @Override protected boolean convertsInWater(){return false;}
     @Override public boolean doHurtTarget(ServerLevel level,Entity victim){

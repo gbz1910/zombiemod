@@ -5,16 +5,17 @@ import net.minecraft.client.renderer.entity.*;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.Identifier;
 final class InfectedRenderer extends MobRenderer<Infected,InfectedRenderer.State,InfectedRenderer.Model> {
-    static final class State extends LivingEntityRenderState {int windup;float swing;}
-    private final Identifier texture;
+    static final class State extends LivingEntityRenderState {int windup,variant;float swing;}
+    private final Identifier[] textures=new Identifier[3];
     InfectedRenderer(EntityRendererProvider.Context ctx,int kind){
         super(ctx,new Model(kind),kind==2?.8f:.48f);
-        texture=Zona.id("textures/entity/"+new String[]{"comum","corredor","tanque"}[kind]+".png");
+        String key=new String[]{"comum","corredor","tanque"}[kind];
+        for(int i=0;i<textures.length;i++)textures[i]=Zona.id("textures/entity/"+key+"_"+i+".png");
     }
     @Override public State createRenderState(){return new State();}
-    @Override public Identifier getTextureLocation(State s){return texture;}
+    @Override public Identifier getTextureLocation(State s){return textures[Math.floorMod(s.variant,textures.length)];}
     @Override public void extractRenderState(Infected z,State s,float partial){
-        super.extractRenderState(z,s,partial);s.windup=z.windup();s.swing=z.getSwingAnimation(partial);
+        super.extractRenderState(z,s,partial);s.windup=z.windup();s.variant=z.variant();s.swing=z.getSwingAnimation(partial);
     }
     static final class Model extends EntityModel<State> {
         final ModelPart[] bones;final float[][][] clips;final int kind;
