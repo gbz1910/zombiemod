@@ -87,7 +87,8 @@ public final class Infected extends Zombie {
             intended=null;recovery=24;}
     }
     private void applyEvolution(ServerLevel level){
-        long day=Math.max(0,Math.min(Settings.EVOLUTION_DAY_CAP.get(),level.getDayTime()/24000));
+        long clockTicks=level.clockManager().getInstance(level.dimensionType().defaultClock()).totalTicks();
+        long day=Math.max(0,Math.min(Settings.EVOLUTION_DAY_CAP.get(),clockTicks/24000));
         if(day==appliedEvolutionDay)return;
         var profile=getType()==Zona.TANK.get()?Settings.HEAVY:getType()==Zona.RUNNER.get()?Settings.FAST:Settings.NORMAL;
         double oldMax=getMaxHealth(),healthRatio=oldMax<=0?1:getHealth()/oldMax;

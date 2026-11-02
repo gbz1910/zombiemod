@@ -36,7 +36,7 @@ final class Spawns {
         var server=level.getLevel();
         if(server.getEntitiesOfClass(Infected.class,new net.minecraft.world.phys.AABB(pos).inflate(32)).size()>=Settings.LOCAL_LIMIT.get())return false;
         for(var player:server.players()){
-            if(player.distanceToSqr(pos.getCenter())>48*48)continue;
+            if(player.distanceToSqr(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5)>48*48)continue;
             if(server.getEntitiesOfClass(Infected.class,player.getBoundingBox().inflate(48)).size()>=Settings.PLAYER_LIMIT.get())return false;
         }
         return true;

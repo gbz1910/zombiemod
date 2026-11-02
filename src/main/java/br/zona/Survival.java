@@ -6,6 +6,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.util.Prediction;
 import net.minecraftforge.event.TickEvent;
 
 final class Lantern extends Item { Lantern(Properties props){super(props.stacksTo(1));} }
@@ -16,7 +18,7 @@ final class CleanWater extends Item {
         if(!level.isClientSide() && entity instanceof Player player && !player.getAbilities().instabuild){
             ItemStack empty=new ItemStack(Items.GLASS_BOTTLE);
             if(result.isEmpty())return empty;
-            if(!player.getInventory().add(empty))player.drop(empty,false);
+            if(!player.getInventory().add(empty))player.drop(empty,false,Prediction.SERVER_ONLY);
         }
         return result;
     }
