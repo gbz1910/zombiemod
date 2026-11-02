@@ -19,7 +19,7 @@ O mod usa Java 25 e traz os próprios modelos, animações, texturas e áudios. 
 | Recarregar | Pressione **R** com a munição correta no inventário. |
 | Tratar ferimento | Segure o botão direito com a bandagem ou o kit até terminar. |
 
-As armas começam vazias. A pistola usa 12 cartuchos de 9 mm e a M4 usa 30 de 5,56 mm. A contagem aparece acima da barra de acesso rápido. A recarga desconta apenas o que foi transferido para a arma. Trocar de slot cancela uma recarga em andamento. A carga já inserida fica salva na própria arma. Morrer ou sair do servidor cancela a recarga pendente. A arma e as munições seguem as regras normais de queda de inventário do mundo. A cura exige vida abaixo do máximo. Receber dano interrompe o tratamento.
+As armas começam vazias. A pistola usa 12 cartuchos de 9 mm e a M4 usa 30 de 5,56 mm. A contagem aparece acima da barra de acesso rápido. A recarga desconta apenas o que foi transferido para a arma. Trocar de slot cancela uma recarga em andamento. A carga já inserida fica salva na própria arma. Morrer ou sair do servidor cancela a recarga pendente. A arma e as munições seguem as regras normais de queda de inventário do mundo. A cura exige vida abaixo do máximo. Receber dano interrompe o tratamento. Os disparos usam um traço luminoso de bala até o impacto, para tornar clara a direção de cada tiro.
 
 ## Sobrevivência
 
@@ -34,7 +34,7 @@ Use a bancada de trabalho. Cada grupo entre crases representa uma linha da grade
 | 2 bandagens | `SS` `WW` | S = linha, W = lã branca |
 | Kit de primeiros socorros | `ILI` `BGB` `ILI` | I = pepita de ferro, L = couro, B = bandagem, G = maçã dourada |
 
-O comum acompanha a horda. O corredor é rápido, com menos vida. O tanque tem braços pesados e prepara o golpe antes do impacto. Disparos atraem infectados próximos. A distribuição inicial entre os infectados é de 70% comuns, 25% corredores e 5% tanques, nas listas de aparição que também permitem o zumbi original.
+O comum acompanha a horda. O corredor é rápido, com menos vida e postura reta. O tanque tem braços pesados e prepara o golpe antes do impacto. Cada tipo escolhe aleatoriamente uma camisa preta, verde ou vermelha quando nasce. Disparos atraem infectados próximos. A distribuição natural é de 70% comuns, 25% corredores e 5% tanques. As listas de spawn naturais de todas as categorias são substituídas e qualquer mob vanilla ou de outro mod é recusado ao entrar no mundo, portanto somente os três infectados aparecem.
 
 O Forge gera `config/zona-common.toml` após a primeira inicialização. Com o jogo fechado, ajuste a capacidade, intervalos, dano, recarga, ruído, dispersão, pesos de aparição e atributos. Em multiplayer, use a mesma configuração nos clientes e no servidor.
 
