@@ -188,9 +188,9 @@ public final class WorldChecks {
             case 656 -> check(server(p->p.hasEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION)),"held lantern grants night vision");
             case 660 -> {select(8);server(p->{p.getFoodData().setFoodLevel(10);return true;});mc.options.keyUse.setDown(true);use();}
             case 700 -> mc.options.keyUse.setDown(false);
-            case 706 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(8).getCount()==1),"canned food restores hunger");select(9);mc.options.keyUse.setDown(true);use();}
+            case 706 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(8).getCount()==1),"canned food restores hunger");server(p->{var inv=p.getInventory();var water=inv.getItem(9);var food=inv.getItem(8);inv.setItem(8,water);inv.setItem(9,food);return true;});select(8);mc.options.keyUse.setDown(true);use();}
             case 750 -> mc.options.keyUse.setDown(false);
-            case 756 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(9).getCount()==1 && hasItem(p,Items.GLASS_BOTTLE)),"clean water restores hunger and returns glass bottle");Screenshot.grab(mc,false);}
+            case 756 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(8).getCount()==1 && hasItem(p,Items.GLASS_BOTTLE)),"clean water restores hunger and returns glass bottle");Screenshot.grab(mc,false);}
             case 760 -> {mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);select(1);spawnTarget("comum",0);}
             case 763 -> fireAim(.90);
             case 764 -> mc.options.keyAttack.setDown(false);
