@@ -21,7 +21,7 @@ final class InfectedRenderer extends MobRenderer<Infected,InfectedRenderer.State
         final ModelPart[] bones;final float[][][] clips;final int kind;
         Model(int kind){
             super(kind==2?InfectedArt.tanque():kind==1?InfectedArt.corredor():InfectedArt.comum());this.kind=kind;
-            clips=kind==2?InfectedArt.TANQUE:kind==1?InfectedArt.CORREDOR:InfectedArt.COMUM;
+            clips=kind==2?InfectedMotion.TANQUE:kind==1?InfectedMotion.CORREDOR:InfectedMotion.COMUM;
             bones=java.util.stream.Stream.of("torso","head","arm_l","arm_r","leg_l","leg_r").map(root()::getChild).toArray(ModelPart[]::new);
         }
         @Override public void setupAnim(State s){

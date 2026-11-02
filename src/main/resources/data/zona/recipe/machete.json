@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  I",
+    " SI",
+    "G  "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "S": "zona:sucata_metalica",
+    "G": "minecraft:stick"
+  },
+  "result": {
+    "id": "zona:machete",
+    "count": 1
+  }
+}

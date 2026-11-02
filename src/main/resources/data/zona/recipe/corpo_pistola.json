@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "III",
+    "S S",
+    "III"
+  ],
+  "key": {
+    "I": "zona:sucata_metalica",
+    "S": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "zona:corpo_pistola",
+    "count": 1
+  }
+}

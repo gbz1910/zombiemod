@@ -37,10 +37,11 @@ def box(name,lo,hi,material):
     bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
     ob.data.materials.append(mats[material]);ob['texture']=material
     return ob
-def export_item(name,parts,gun=False):
+def export_item(name,parts,gun=False,sequence=None):
     clear();objs=[]
     for n,lo,hi,mat in parts: objs.append(box(n,lo,hi,mat))
-    frames=[1]
+    frames=sequence or [1]
+    animated=gun or sequence is not None
     if gun:
         scene=bpy.context.scene
         # Idle, draw, recoil and magazine extraction poses; marker names are editable in the timeline.
@@ -58,6 +59,18 @@ def export_item(name,parts,gun=False):
                     ob.location.z-= {21:1.5,25:5,29:2}.get(f,0)
                 ob.keyframe_insert(data_path='location',frame=f)
         scene.frame_end=37
+    elif sequence is not None:
+        scene=bpy.context.scene
+        for f,label in zip(frames,['rest','equip','attack','impact']):scene.timeline_markers.new(label,frame=f)
+        for ob in objs:
+            start=ob.location.copy()
+            for index,f in enumerate(frames):
+                ob.location=start.copy();ob.rotation_euler=(0,0,0)
+                if index==1:ob.rotation_euler[1]=math.radians(-18)
+                elif index==2:ob.rotation_euler[1]=math.radians(62);ob.location.z+=1.5
+                elif index==3:ob.rotation_euler[1]=math.radians(35);ob.location.z+=.6
+                ob.keyframe_insert(data_path='location',frame=f);ob.keyframe_insert(data_path='rotation_euler',frame=f)
+        scene.frame_end=frames[-1]
     entries=[]
     for i,f in enumerate(frames):
         bpy.context.scene.frame_set(f); elements=[]
@@ -68,7 +81,7 @@ def export_item(name,parts,gun=False):
         tex={ob['texture']:'zona:item/'+ob['texture'] for ob in objs};tex['particle']=next(iter(tex.values()))
         display={'gui':{'rotation':[15,110,-12],'scale':[.75]*3},'ground':{'scale':[.45]*3,'translation':[0,3,0]},'fixed':{'rotation':[0,90,0]},'thirdperson_righthand':{'rotation':[0,0,0],'translation':[0,2,0],'scale':[.85]*3},'firstperson_righthand':{'rotation':[0,0,0],'translation':[0,2,4],'scale':[.75]*3}}
         for view in ('firstperson','thirdperson'): display[view+'_lefthand']=display[view+'_righthand']
-        model=name+('_'+str(i) if gun else '')
+        model=name+('_'+str(i) if animated else '')
         write(assets/'models/item'/f'{model}.json',{'textures':tex,'elements':elements,'display':display})
         entries.append({'threshold':i,'model':{'type':'minecraft:model','model':'zona:item/'+model}})
     if gun:
@@ -82,7 +95,7 @@ def export_item(name,parts,gun=False):
             variant=f'{name}_aim_{i}'
             write(assets/'models/item'/f'{variant}.json',aimed)
             entries.append({'threshold':10+i,'model':{'type':'minecraft:model','model':'zona:item/'+variant}})
-    write(assets/'items'/f'{name}.json',{'model':{'type':'minecraft:range_dispatch','property':'minecraft:custom_model_data','index':0,'entries':entries,'fallback':entries[0]['model']} if gun else entries[0]['model']})
+    write(assets/'items'/f'{name}.json',{'model':{'type':'minecraft:range_dispatch','property':'minecraft:custom_model_data','index':0,'entries':entries,'fallback':entries[0]['model']} if animated else entries[0]['model']})
     bpy.context.scene.frame_set(1);bpy.ops.wm.save_as_mainfile(filepath=str(studio/(name+'.blend')),compress=True)
 P=[]
 def part(n,x,y,z,X,Y,Z,m):P.append((n,(x,y,z),(X,Y,Z),m))
@@ -110,5 +123,37 @@ for item,hue,height in [('municao_9mm','blue',3.2),('municao_556','orange',5.2)]
     for x in (4,7,10):
         part('case',x,7,6,x+1.8,7+height,8,'brass');part('bullet',x+.25,7+height,6.25,x+1.55,8.4+height,7.75,'bronze')
     export_item(item,P);P.clear()
+
+# Machete with a chipped steel edge and wrapped grip. Four Blender-authored poses
+# are exported as item model frames and selected by the server-synced model data.
+part('wrapped handle',6.7,1,10.5,9.3,3.2,15,'grip')
+for z in (11.2,12.1,13.0,13.9):part('wrap band',6.55,1.25,z,9.45,2.8,z+.38,'strap')
+part('blade tang',7.2,2.9,14,8.8,4.2,20.3,'steel')
+part('blade spine',6.9,3.8,18.3,9.1,5.1,26.6,'wear')
+part('worn cutting edge',6.75,3.2,19.3,7.1,4.1,26.4,'steel')
+part('tip',7.1,3.7,26.1,8.9,4.8,28,'wear')
+part('guard',6.1,2.8,13.7,9.9,4.4,14.6,'black')
+export_item('machete',P,sequence=[1,5,9,13]);P.clear()
+
+# Crafting components, survival supplies, and their distinct readable icons.
+part('scrap plate',3,3,5,13,6,11,'steel');part('bright scratch',4,6,4.8,11,7,5.2,'wear');part('folded edge',3,6,10,13,8,11.4,'black')
+export_item('sucata_metalica',P);P.clear()
+for z in (4.5,6.5,8.5,10.5):
+    part('spring coil',5,6.5,z,11,9.5,z+1.2,'bronze')
+export_item('mola_arma',P);P.clear()
+part('trigger body',6,4,6,10,8,12,'steel');part('finger loop',7,3.7,5.2,9,4.5,9,'black');part('trigger tip',7.3,2.9,5.1,8.7,4.1,6,'wear')
+export_item('gatilho',P);P.clear()
+part('barrel tube',5,6,3,11,10,13,'steel');part('bore',6.4,9.9,2.7,9.6,10.2,5,'black');part('muzzle ring',4.7,6.1,3,11.3,10.1,4.2,'wear')
+export_item('cano_arma',P);P.clear()
+part('pistol frame',5,3,4,11,9,13,'steel');part('grip scales',5.2,2.8,10,10.8,4.8,14,'grip');part('slide rails',4.5,9,6,11.5,10.2,13,'wear')
+export_item('corpo_pistola',P);P.clear()
+part('receiver upper',4,8,3,12,11,15,'steel');part('receiver lower',5,5,6,11,8.2,15,'grip');part('rail',4,11,4,12,12,15,'wear')
+export_item('receptor_m4',P);P.clear()
+part('lantern body',5,4,5,11,11,12,'black');part('glass',5.8,7,4.6,10.2,10.2,5.2,'label');part('cage',4.4,6.5,4.2,5.5,10.8,5.4,'steel');part('cap',4,10.8,4.4,12,12,12.6,'wear');part('handle',6.5,2,4,9.5,3.2,12,'grip')
+export_item('lanterna',P);P.clear()
+part('tin',4,3,4,12,10,12,'steel');part('lid',3.8,10,3.9,12.2,10.6,12.1,'wear');part('label',5,5,3.8,11,8.5,4.1,'orange');part('label text',6,6,3.6,10,7,3.9,'label')
+export_item('lata_comida',P);P.clear()
+part('bottle glass',5,2,4,11,10,12,'blue');part('neck',6,10,5,10,12.8,11,'blue');part('cap',6,12.8,5,10,14,11,'steel');part('water highlight',5.3,4,3.8,6,9,4,'label')
+export_item('garrafa_agua_limpa',P);P.clear()
 
 

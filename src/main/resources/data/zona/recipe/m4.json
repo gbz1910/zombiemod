@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "RCT",
+    " S ",
+    "III"
+  ],
+  "key": {
+    "R": "zona:receptor_m4",
+    "C": "zona:cano_arma",
+    "T": "zona:gatilho",
+    "S": "zona:mola_arma",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "zona:m4",
+    "count": 1
+  }
+}

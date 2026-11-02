@@ -7,6 +7,7 @@ out=root/'src/main/java/br/zona'
 texdir=root/'src/main/resources/assets/zona/textures/entity'
 texdir.mkdir(exist_ok=True,parents=True)
 java=['package br.zona;','import net.minecraft.client.model.geom.*;','import net.minecraft.client.model.geom.builders.*;','final class InfectedArt {']
+motion=['package br.zona;','/** Blender-sampled shared pose data, safe to use on the logical server for hitboxes. */','final class InfectedMotion {']
 bones=['torso','head','arm_l','arm_r','leg_l','leg_r']
 clips=['idle','walk','run','attack','hurt','death','windup']
 for kind,(key,W,H,arm,accent) in enumerate([('comum',8,12,4,'436978'),('corredor',6,11,3,'ad6a3b'),('tanque',13,16,6,'58644e')]):
@@ -92,9 +93,11 @@ for kind,(key,W,H,arm,accent) in enumerate([('comum',8,12,4,'436978'),('corredor
             bpy.context.scene.frame_set(frame)
             section.append([v for n in bones for v in (rig.pose.bones[n].rotation_euler.x,rig.pose.bones[n].rotation_euler.y)])
         samples.append(section)
-    java.append('static final float[][][] '+key.upper()+'={'+','.join('{'+','.join('{'+','.join(map(f,row))+'}' for row in sec)+'}' for sec in samples)+'};')
+    motion.append('static final float[][][] '+key.upper()+'={'+','.join('{'+','.join('{'+','.join(map(f,row))+'}' for row in sec)+'}' for sec in samples)+'};')
     bpy.context.scene.frame_start=1;bpy.context.scene.frame_end=261;bpy.context.scene.frame_set(1)
     bpy.ops.wm.save_as_mainfile(filepath=str(root/'art/blender'/(key+'.blend')),compress=True)
 java.append('}')
 (out/'InfectedArt.java').write_text('\n'.join(java),encoding='utf8')
+motion.append('}')
+(out/'InfectedMotion.java').write_text('\n'.join(motion),encoding='utf8')
 

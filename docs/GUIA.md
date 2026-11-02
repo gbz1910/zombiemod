@@ -1,40 +1,52 @@
-# Zona Morta 0.1.0
+# Zona Morta 0.1.1
 
-Mod de sobrevivência para **Minecraft Java 26.3 e Forge 66.1.0**.
+Mod para **Minecraft Java 26.3**, **Forge 66.1.0** e Java 25.
 
 ## Instalação
 
-1. Instale o Forge 66.1.0 para Minecraft Java 26.3 e execute esse perfil uma vez.
-2. Copie `zona-0.1.0.jar` para a pasta `mods` da instância. No launcher padrão do Windows, ela fica em `%APPDATA%\.minecraft\mods`.
-3. Inicie o perfil Forge. Em multiplayer, instale o mesmo arquivo no servidor e em cada cliente.
-
-O mod usa Java 25 e traz os próprios modelos, animações, texturas e áudios. A aba criativa **Zona Morta • Suprimentos** contém as armas, munições, itens médicos e os três ovos de invocação.
+1. Inicie uma vez o perfil Minecraft 26.3 com Forge 66.1.0.
+2. Copie `zona-0.1.1.jar` para `%APPDATA%\.minecraft\mods` (ou para a pasta `mods` da instância usada pelo launcher).
+3. Inicie o perfil Forge. Em multiplayer, instale o mesmo JAR no servidor e nos clientes.
 
 ## Controles
 
-| Ação | Controle padrão |
+| Ação | Controle |
 |---|---|
-| Atirar | Botão esquerdo. Clique uma vez por tiro da pistola ou segure para a rajada da M4. |
-| Mirar | Segure o botão direito enquanto empunha a arma. |
-| Recarregar | Pressione **R** com a munição correta no inventário. |
-| Tratar ferimento | Segure o botão direito com a bandagem ou o kit até terminar. |
+| Atirar | Botão esquerdo; segurar dispara rajadas com a M4. |
+| Mirar | Segure o botão direito com uma arma de fogo. |
+| Recarregar | **R** com a munição correspondente no inventário. |
+| Golpear com a machete | Botão esquerdo; o arco atinge infectados próximos uma vez por golpe. |
+| Usar itens médicos/comida/água | Segure o botão direito até o uso terminar. |
+| Lanterna | Segure na mão principal ou secundária para receber visão noturna. |
 
-As armas começam vazias. A pistola usa 12 cartuchos de 9 mm e a M4 usa 30 de 5,56 mm. A contagem aparece acima da barra de acesso rápido. A recarga desconta apenas o que foi transferido para a arma. Trocar de slot cancela uma recarga em andamento. A carga já inserida fica salva na própria arma. Morrer ou sair do servidor cancela a recarga pendente. A arma e as munições seguem as regras normais de queda de inventário do mundo. A cura exige vida abaixo do máximo. Receber dano interrompe o tratamento. Os disparos usam um traço luminoso de bala até o impacto, para tornar clara a direção de cada tiro.
+A pistola usa 12 cartuchos de 9 mm e a M4 usa 30 de 5,56 mm. Os tiros têm rastro visível; tiros na cabeça causam o dobro do dano e mostram um aviso breve. Zumbis recebem variações de camisa, não queimam ao sol e ficam mais fortes conforme passam os dias. O peso padrão mantém o tanque incomum; os zumbis aparecem em pequenos grupos e os limites por área e jogador podem ser ajustados em `config/zona-common.toml`.
 
-## Sobrevivência
+## Receitas
 
-Use a bancada de trabalho. Cada grupo entre crases representa uma linha da grade, da esquerda para a direita. O ponto representa uma casa vazia.
+As linhas mostram a grade da bancada; `.` indica espaço vazio.
 
-| Resultado | Linhas | Ingredientes |
+| Item | Grade | Ingredientes |
 |---|---|---|
-| Pistola | `III` `.LR` `..L` | I = lingote de ferro, L = couro, R = pó de redstone |
-| M4 | `IBI` `RPI` `L.L` | I = lingote de ferro, B = bloco de ferro, R = pó de redstone, P = pistão, L = couro |
-| 12 cartuchos de 9 mm | `CN` `PG` | C = lingote de cobre, N = pepita de ferro, P = papel, G = pólvora |
-| 16 cartuchos de 5,56 mm | `IN` `CG` `PG` | I = lingote de ferro, N = pepita de ferro, C = lingote de cobre, G = pólvora, P = papel |
-| 2 bandagens | `SS` `WW` | S = linha, W = lã branca |
-| Kit de primeiros socorros | `ILI` `BGB` `ILI` | I = pepita de ferro, L = couro, B = bandagem, G = maçã dourada |
+| 3 sucatas metálicas | `III` | I = lingote de ferro |
+| Mola de arma | `I` / `I` / `I` | I = lingote de ferro |
+| Gatilho | shapeless | Pepita de ferro + mola de arma |
+| Cano de arma | `SSS` | S = sucata metálica |
+| Corpo da pistola | `SSS` / `I.I` / `SSS` | S = sucata; I = lingote de ferro |
+| Receptor da M4 | `SSS` / `ISI` / `SSS` | S = sucata; I = lingote de ferro |
+| Pistola | `BCT` / `.SI` / `.I.` | B = corpo; C = cano; T = gatilho; S = mola; I = lingote de ferro |
+| M4 | `RCT` / `.S.` / `III` | R = receptor; C = cano; T = gatilho; S = mola; I = lingote de ferro |
+| Machete | `..I` / `.SI` / `G..` | I = lingote de ferro; S = sucata; G = graveto |
+| Lanterna | `.I.` / `IGI` / `.T.` | I = pepita de ferro; G = painel de vidro; T = tocha |
+| Garrafa de água limpa | shapeless | Garrafa de vidro + balde de água; o balde vazio retorna |
+| 12 cartuchos de 9 mm | `CN` / `PG` | C = cobre; N = pepita de ferro; P = papel; G = pólvora |
+| 16 cartuchos de 5,56 mm | `IN` / `CG` / `PG` | I = ferro; N = pepita de ferro; C = cobre; P = papel; G = pólvora |
+| 2 bandagens | `SS` / `WW` | S = linha; W = lã branca |
+| Kit médico | `ILI` / `BGB` / `ILI` | I = pepita de ferro; L = couro; B = bandagem; G = maçã dourada |
 
-O comum acompanha a horda. O corredor é rápido, com menos vida e postura reta. O tanque tem braços pesados e prepara o golpe antes do impacto. Cada tipo escolhe aleatoriamente uma camisa preta, verde ou vermelha quando nasce. Disparos atraem infectados próximos. A distribuição natural é de 70% comuns, 25% corredores e 5% tanques. As listas de spawn naturais de todas as categorias são substituídas e qualquer mob vanilla ou de outro mod é recusado ao entrar no mundo, portanto somente os três infectados aparecem.
+Sucata, lata de comida e garrafa de água também podem aparecer raramente em baús; sucata e consumíveis podem cair de zumbis. A comida e a água recuperam pouca fome; a água devolve a garrafa de vidro vazia.
 
-O Forge gera `config/zona-common.toml` após a primeira inicialização. Com o jogo fechado, ajuste a capacidade, intervalos, dano, recarga, ruído, dispersão, pesos de aparição e atributos. Em multiplayer, use a mesma configuração nos clientes e no servidor.
+## Configuração
 
+O mod cria `config/zona-common.toml`. É possível alterar pesos de spawn, tamanho de grupos, limites por área e jogador, dia máximo de evolução, vida/velocidade/dano dos três tipos, dano/intervalo da machete, valores das armas e depuração de hitboxes. A depuração de áreas de acerto vem desligada.
+
+O mundo é configurado para permitir somente os três infectados como mobs. Isso bloqueia animais e mobs de outros mods também.

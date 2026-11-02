@@ -3,7 +3,7 @@ loaderVersion="[66,67)"
 license="All Rights Reserved"
 [[mods]]
 modId="zona"
-version="0.1.0"
+version="0.1.1"
 displayName="Zona Morta"
 description="Combate e sobrevivência durante um surto zumbi."
 [[dependencies.zona]]

@@ -12,7 +12,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.*;
@@ -28,12 +31,18 @@ import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 @Mod.EventBusSubscriber(modid="examplemod",value=Dist.CLIENT)
 public final class WorldChecks {
     private static boolean started;private static int t;private static UUID dummy;
+    private static final UUID[] meleeTargets=new UUID[3];
     static Minecraft mc(){return Minecraft.getInstance();}
     static <T> T server(Function<ServerPlayer,T> operation){
         var srv=mc().getSingleplayerServer();
         return srv.submit(()->operation.apply(srv.getPlayerList().getPlayers().getFirst())).join();
     }
     static Item item(String id){return BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath("zona",id));}
+    static ItemStack stack(String id){return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(id.contains(":")?id:"minecraft:"+id)));}
+    static ItemStack[] grid(int size){var a=new ItemStack[size];Arrays.fill(a,ItemStack.EMPTY);return a;}
+    static boolean hasItem(ServerPlayer p,Item wanted){for(int i=0;i<p.getInventory().getContainerSize();i++)if(p.getInventory().getItem(i).is(wanted))return true;return false;}
+    static String recipe(ServerPlayer p,int w,int h,ItemStack[] items){return p.level().recipeAccess().getRecipeFor(RecipeType.CRAFTING,CraftingInput.of(w,h,Arrays.asList(items)),p.level()).map(r->r.id().identifier().getPath()).orElse("none");}
+    static void recipeCheck(ServerPlayer p,String name,int w,int h,ItemStack[] items){check(recipe(p,w,h,items).equals(name),"crafting recipe "+name);}
     static int rounds(ItemStack s){return s.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getIntOr("rounds",0);}
     static void check(boolean ok,String label){if(!ok)throw new IllegalStateException("ZONA_QA_FAILED "+label);System.out.println("ZONA_QA_PASS "+label);}
     static void select(int slot){mc().player.getInventory().setSelectedSlot(slot);}
@@ -57,9 +66,20 @@ public final class WorldChecks {
             case 100 -> {
                 mc.player.setXRot(0);mc.player.setYRot(0);
                 server(p->{var inv=p.getInventory();
-                    String[] ids={"pistola","m4","municao_9mm","municao_556","bandagem","kit"};
-                    int[] counts={1,1,17,48,2,2};
+                    String[] ids={"pistola","m4","municao_9mm","municao_556","bandagem","kit","machete","lanterna","lata_comida","garrafa_agua_limpa","sucata_metalica","mola_arma","gatilho","cano_arma","corpo_pistola","receptor_m4"};
+                    int[] counts={1,1,17,48,2,2,1,1,2,2,3,1,1,1,1,1};
                     for(int i=0;i<ids.length;i++){check(item(ids[i])!=Items.AIR,"registered "+ids[i]);inv.setItem(i,new ItemStack(item(ids[i]),counts[i]));}
+                    var g=grid(3);g[0]=stack("iron_ingot");g[1]=stack("iron_ingot");g[2]=stack("iron_ingot");recipeCheck(p,"sucata_metalica",3,1,g);
+                    g=grid(3);for(int i=0;i<3;i++)g[i]=stack("iron_ingot");recipeCheck(p,"mola_arma",1,3,g);
+                    g=grid(2);g[0]=stack("iron_nugget");g[1]=stack("zona:mola_arma");recipeCheck(p,"gatilho",2,1,g);
+                    g=grid(3);for(int i=0;i<3;i++)g[i]=stack("zona:sucata_metalica");recipeCheck(p,"cano_arma",3,1,g);
+                    g=grid(9);for(int i:new int[]{0,1,2,6,7,8})g[i]=stack("zona:sucata_metalica");g[3]=stack("iron_ingot");g[5]=stack("iron_ingot");recipeCheck(p,"corpo_pistola",3,3,g);
+                    g=grid(9);for(int i:new int[]{0,1,2,6,7,8})g[i]=stack("zona:sucata_metalica");g[3]=stack("iron_ingot");g[4]=stack("zona:sucata_metalica");g[5]=stack("iron_ingot");recipeCheck(p,"receptor_m4",3,3,g);
+                    g=grid(9);g[0]=stack("zona:corpo_pistola");g[1]=stack("zona:cano_arma");g[2]=stack("zona:gatilho");g[4]=stack("zona:mola_arma");g[5]=stack("iron_ingot");g[7]=stack("iron_ingot");recipeCheck(p,"pistola",3,3,g);
+                    g=grid(9);g[0]=stack("zona:receptor_m4");g[1]=stack("zona:cano_arma");g[2]=stack("zona:gatilho");g[4]=stack("zona:mola_arma");for(int i=6;i<9;i++)g[i]=stack("iron_ingot");recipeCheck(p,"m4",3,3,g);
+                    g=grid(9);g[2]=stack("iron_ingot");g[4]=stack("zona:sucata_metalica");g[5]=stack("iron_ingot");g[6]=stack("stick");recipeCheck(p,"machete",3,3,g);
+                    g=grid(9);g[1]=stack("iron_nugget");g[3]=stack("iron_nugget");g[4]=stack("glass_pane");g[5]=stack("iron_nugget");g[7]=stack("torch");recipeCheck(p,"lanterna",3,3,g);
+                    g=grid(2);g[0]=stack("glass_bottle");g[1]=stack("water_bucket");recipeCheck(p,"garrafa_agua_limpa",2,1,g);
                     for(int i=0;i<3;i++){
                         String key=new String[]{"comum","corredor","tanque"}[i];
                         var type=BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("zona",key));
@@ -99,7 +119,9 @@ public final class WorldChecks {
             }
             case 265 -> mc.options.keyAttack.setDown(true);
             case 269 -> mc.options.keyAttack.setDown(false);
-            case 285 -> {check(server(p->hp(p)<before),"unobstructed shot damages infected");Screenshot.grab(mc,false);select(1);}
+            case 285 -> {check(server(p->hp(p)==10),"pistol headshot doubles torso damage");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
+            case 286 -> mc.options.keyAttack.setDown(false);
+            case 300 -> {check(server(p->hp(p)==4),"pistol torso shot uses normal damage");mc.player.setXRot(0);select(1);}
             case 296 -> reload();
             case 355 -> {
                 check(server(p->rounds(p.getMainHandItem())==30 && p.getInventory().getItem(3).getCount()==18),"M4 magazine and caliber");
@@ -123,9 +145,29 @@ public final class WorldChecks {
                 check(server(p->p.getInventory().getItem(5).getCount()==1 && p.getHealth()>before+4),"completed medical kit heals");
                 select(0);mc.player.setYRot(-24);mc.player.setXRot(0);Screenshot.grab(mc,false);
             }
-            case 630 -> {select(1);mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);}
-            case 638 -> Screenshot.grab(mc,false);
-            case 655 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
+            case 630 -> {
+                server(p->{double[] xs={-.55,0,.55};for(int i=0;i<xs.length;i++){
+                    var type=BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("zona","comum"));
+                    var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);mob.setNoAi(true);
+                    mob.snapTo(p.getX()+xs[i],p.getY(),p.getZ()+2.35);p.level().addFreshEntity(mob);meleeTargets[i]=mob.getUUID();
+                }return true;});
+                select(6);mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
+            }
+            case 635 -> mc.options.keyAttack.setDown(true);
+            case 636 -> mc.options.keyAttack.setDown(false);
+            case 646 -> {check(server(p->{for(UUID id:meleeTargets){var z=(Infected)p.level().getEntity(id);if(z==null||z.getHealth()!=10)return false;}return true;}),"machete hits three nearby targets once each");Screenshot.grab(mc,false);select(7);}
+            case 656 -> check(server(p->p.hasEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION)),"held lantern grants night vision");
+            case 660 -> {select(8);server(p->{p.getFoodData().setFoodLevel(10);return true;});mc.options.keyUse.setDown(true);use();}
+            case 700 -> mc.options.keyUse.setDown(false);
+            case 706 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(8).getCount()==1),"canned food restores hunger");select(9);mc.options.keyUse.setDown(true);use();}
+            case 750 -> mc.options.keyUse.setDown(false);
+            case 756 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(9).getCount()==1 && hasItem(p,Items.GLASS_BOTTLE)),"clean water restores hunger and returns glass bottle");Screenshot.grab(mc,false);}
+            case 765 -> server(p->{var clock=p.level().dimensionType().defaultClock().orElseThrow();p.level().getServer().clockManager().setTotalTicks(clock,48000);return true;});
+            case 780 -> check(server(p->{var seen=new HashSet<String>();for(var z:p.level().getEntitiesOfClass(Infected.class,p.getBoundingBox().inflate(12))){
+                String type=BuiltInRegistries.ENTITY_TYPE.getKey(z.getType()).getPath();double expected=type.equals("tanque")?72.8:type.equals("corredor")?14.56:22.88;
+                if(z.getMaxHealth()<expected-.01)return false;seen.add(type);
+            }return seen.containsAll(Set.of("comum","corredor","tanque"));}),"all infected types evolve after two full days");
+            case 790 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
         }
     }
 }

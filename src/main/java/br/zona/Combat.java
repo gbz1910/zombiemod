@@ -25,7 +25,7 @@ final class Combat {
     static final class State {
         final ItemStack weapon;
         boolean firing,aim;
-        int reload,burst,cooldown,flash,equip=3,lastNoise=-1000;
+        int reload,burst,cooldown,flash,equip=3,lastNoise=-1000,headshot;
         State(ItemStack stack){weapon=stack;}
     }
     static final Map<ServerPlayer,State> active=new WeakHashMap<>();
@@ -47,6 +47,8 @@ final class Combat {
     }
     private static void receive(Action msg,CustomPayloadEvent.Context ctx){
         ServerPlayer p=ctx.getSender();if(p==null)return;
+        ItemStack held=p.getMainHandItem();
+        if(held.getItem() instanceof Machete){if(msg.kind==PRESS)Machete.strike(p,held);return;}
         var s=state(p);if(s==null)return;
         Gun g=(Gun)s.weapon.getItem();
         switch(msg.kind){
@@ -76,15 +78,17 @@ final class Combat {
         g.load(s.weapon,rounds);sound(p,Audio.IN.get(),.6f,1.5f);
     }
     static void tick(ServerPlayer p){
+        Machete.tick(p);
         State s=state(p);if(s==null)return;Gun gun=(Gun)s.weapon.getItem();
         if(s.cooldown>0)s.cooldown--;
         if(s.flash>0)s.flash--;
         if(s.equip>0)s.equip--;
+        if(s.headshot>0)s.headshot--;
         if(s.reload>0){if(--s.reload==0)finishReload(p,s,gun);}
         else if(s.firing && gun.automatic && s.cooldown==0)shoot(p,s,gun);
         int frame=s.reload>0?5+Math.min(3,(gun.reloadTime()-s.reload)*4/gun.reloadTime()):s.flash>0?3:s.equip>0?1:(p.tickCount%40<18?9:0);
         Gun.pose(s.weapon,frame+(s.aim && s.reload==0?10:0));
-        if(p.tickCount%4==0)p.sendSystemMessage(Component.literal((s.reload>0?"Recarregando   ":"")+gun.rounds(s.weapon)+" / "+gun.capacity()),true);
+        if(p.tickCount%4==0)p.sendSystemMessage(Component.literal((s.headshot>0?"HEADSHOT  ":"")+(s.reload>0?"Recarregando   ":"")+gun.rounds(s.weapon)+" / "+gun.capacity()),true);
     }
     private static void sound(ServerPlayer p,SoundEvent sound,float volume,float pitch){
         p.level().playSound(null,p.blockPosition(),sound,SoundSource.PLAYERS,volume,pitch);
@@ -96,24 +100,36 @@ final class Combat {
         if(left==0){sound(p,Audio.DRY.get(),.3f,1.7f);s.firing=false;return;}
         p.getCooldowns().addCooldown(s.weapon,gun.interval());gun.load(s.weapon,left-1);s.flash=2;s.burst=Math.min(14,s.burst+1);
         ServerLevel level=p.level();Vec3 from=p.getEyePosition();var rng=p.getRandom();
-        // ADS is intentionally almost exact.  Hip fire remains loose enough to make
-        // aiming worthwhile, while the generous collision envelope follows the new
-        // entity hitboxes instead of requiring a pixel-perfect ray.
+        // ADS is intentionally almost exact. Hip fire remains loose enough to make
+        // aiming worthwhile. Infected use their actual body bounds, so hits cannot
+        // register in empty space beside the model.
         double spread=(s.aim?Settings.AIM_SPREAD.get():Settings.HIP_SPREAD.get())+(gun.automatic?Settings.BURST_SPREAD.get()*s.burst:.0005);
         Vec3 dir=p.getLookAngle().add(rng.nextGaussian()*spread,rng.nextGaussian()*spread,rng.nextGaussian()*spread).normalize();
         Vec3 far=from.add(dir.scale(80));
-        Vec3 impact=level.clip(new ClipContext(from,far,ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE,p)).getLocation();
+        Vec3 blockEnd=level.clip(new ClipContext(from,far,ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE,p)).getLocation();
+        Vec3 impact=blockEnd;
         double nearest=from.distanceToSqr(impact);LivingEntity victim=null;
         for(var entity:level.getEntitiesOfClass(LivingEntity.class,new AABB(from,impact).inflate(.7),e->e!=p && e.isAlive() && !e.isSpectator())){
-            var hit=entity.getBoundingBox().inflate(.22).clip(from,impact);
+            var box=entity instanceof Infected?entity.getBoundingBox():entity.getBoundingBox().inflate(.22);
+            var hit=box.clip(from,impact);
             if(hit.isPresent() && hit.get().distanceToSqr(from)<nearest){nearest=hit.get().distanceToSqr(from);impact=hit.get();victim=entity;}
+        }
+        boolean headshot=false;
+        if(victim instanceof Infected infected){
+            var head=infected.headBox().clip(from,blockEnd);
+            headshot=head.isPresent();
         }
         if(victim!=null){
             var type=net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DAMAGE_TYPE,Zona.id("bala"));
             var holder=level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(type);
             // Vanilla i-frames would make a fast M4 appear to miss most of its shots.
             victim.setInvulnerableTime(0);
-            victim.hurtServer(level,new net.minecraft.world.damagesource.DamageSource(holder,p),gun.damage());
+            victim.hurtServer(level,new net.minecraft.world.damagesource.DamageSource(holder,p),gun.damage()*(headshot?2:1));
+            if(headshot){
+                s.headshot=12;
+                level.playSound(null,impact.x,impact.y,impact.z,SoundEvents.EXPERIENCE_ORB_PICKUP,SoundSource.PLAYERS,.45f,1.7f);
+                level.sendParticles(ParticleTypes.HAPPY_VILLAGER,impact.x,impact.y,impact.z,4,.06,.06,.06,.03);
+            }
         }
         Vec3 muzzle=from.add(dir.scale(1.35)).add(dir.cross(new Vec3(0,1,0)).scale(s.aim?.05:.25));
         level.sendParticles(ParticleTypes.SMALL_FLAME,muzzle.x,muzzle.y-.18,muzzle.z,1,.015,.015,.015,.004);
