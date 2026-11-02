@@ -110,7 +110,8 @@ public final class WorldChecks {
             case 130 -> {check(server(p->rounds(p.getMainHandItem()))==0,"empty trigger");reload();}
             case 139 -> select(1);
             case 177 -> {
-                check(server(p->rounds(p.getInventory().getItem(0))==0 && p.getInventory().getItem(2).getCount()==17),"reload cancellation on slot change");
+                String reloadState=server(p->rounds(p.getInventory().getItem(0))+":"+p.getInventory().getItem(2).getCount());
+                check(reloadState.equals("0:17"),"reload cancellation on slot change (rounds:ammo="+reloadState+")");
                 select(0);
             }
             case 185 -> reload();
