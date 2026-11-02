@@ -123,7 +123,8 @@ public final class WorldChecks {
             case 240 -> Screenshot.grab(mc,false);
             case 251 -> {mc.options.keyAttack.setDown(false);mc.options.keyUse.setDown(false);}
             case 258 -> {
-                check(server(p->rounds(p.getMainHandItem())==11 && hp(p)==before),"one pistol shot per press and wall protection");
+                double[] shotState=server(p->new double[]{rounds(p.getMainHandItem()),hp(p)});
+                check((int)shotState[0]==11 && shotState[1]==before,"one pistol shot per press and wall protection (rounds="+shotState[0]+", hp="+shotState[1]+", before="+before+")");
                 server(p->{wall(p,false);return true;});mc.player.setXRot(0);
             }
             case 265 -> mc.options.keyAttack.setDown(true);
