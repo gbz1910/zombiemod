@@ -10,7 +10,7 @@ final class Spawns {
             // Replace, rather than append to, each natural-spawn candidate list.
             // This preserves normal night/light/ground rules while making the world
             // an apocalypse with no passive, aquatic, ambient or vanilla hostile mobs.
-            for(var data:java.util.List.copyOf(e.getSpawnerDataList()))e.removeSpawnerData(data);
+            for(var data:java.util.List.copyOf(e.getSpawnerDataList()))e.removeSpawnerData(data.value());
             if(e.getMobCategory()==MobCategory.MONSTER){
                 add(e,Zona.COMMON.get(),Settings.COMMON_WEIGHT.get());
                 add(e,Zona.RUNNER.get(),Settings.RUNNER_WEIGHT.get());
@@ -19,7 +19,7 @@ final class Spawns {
             return false;
         });
         EntityJoinLevelEvent.BUS.addListener(e->{
-            if(e.getLevel() instanceof net.minecraft.server.level.ServerLevel && e.getEntity() instanceof Mob && !(e.getEntity() instanceof Infected))e.setCanceled(true);
+            if(e.getLevel() instanceof net.minecraft.server.level.ServerLevel && e.getEntity() instanceof Mob && !(e.getEntity() instanceof Infected))e.cancel();
             return false;
         });
     }

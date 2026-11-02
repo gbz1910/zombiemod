@@ -112,7 +112,7 @@ final class Combat {
             var type=net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DAMAGE_TYPE,Zona.id("bala"));
             var holder=level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(type);
             // Vanilla i-frames would make a fast M4 appear to miss most of its shots.
-            victim.invulnerableTime=0;
+            victim.setInvulnerableTime(0);
             victim.hurtServer(level,new net.minecraft.world.damagesource.DamageSource(holder,p),gun.damage());
         }
         Vec3 muzzle=from.add(dir.scale(1.35)).add(dir.cross(new Vec3(0,1,0)).scale(s.aim?.05:.25));
