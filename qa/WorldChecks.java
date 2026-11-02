@@ -32,6 +32,8 @@ import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 public final class WorldChecks {
     private static boolean started;private static int t;private static UUID dummy;
     private static final UUID[] meleeTargets=new UUID[3];
+    private static final UUID[] initialTargets=new UUID[3];
+    private static final UUID[] sunTargets=new UUID[3];
     static Minecraft mc(){return Minecraft.getInstance();}
     static <T> T server(Function<ServerPlayer,T> operation){
         var srv=mc().getSingleplayerServer();
@@ -74,7 +76,7 @@ public final class WorldChecks {
                     g=grid(2);g[0]=stack("iron_nugget");g[1]=stack("zona:mola_arma");recipeCheck(p,"gatilho",2,1,g);
                     g=grid(3);for(int i=0;i<3;i++)g[i]=stack("zona:sucata_metalica");recipeCheck(p,"cano_arma",3,1,g);
                     g=grid(9);for(int i:new int[]{0,1,2,6,7,8})g[i]=stack("zona:sucata_metalica");g[3]=stack("iron_ingot");g[5]=stack("iron_ingot");recipeCheck(p,"corpo_pistola",3,3,g);
-                    g=grid(9);for(int i:new int[]{0,1,2,6,7,8})g[i]=stack("zona:sucata_metalica");g[3]=stack("iron_ingot");g[4]=stack("zona:sucata_metalica");g[5]=stack("iron_ingot");recipeCheck(p,"receptor_m4",3,3,g);
+                    g=grid(9);for(int i:new int[]{0,1,2,6,7,8})g[i]=stack("zona:sucata_metalica");g[3]=stack("zona:sucata_metalica");g[4]=stack("iron_ingot");g[5]=stack("zona:sucata_metalica");recipeCheck(p,"receptor_m4",3,3,g);
                     g=grid(9);g[0]=stack("zona:corpo_pistola");g[1]=stack("zona:cano_arma");g[2]=stack("zona:gatilho");g[4]=stack("zona:mola_arma");g[5]=stack("iron_ingot");g[7]=stack("iron_ingot");recipeCheck(p,"pistola",3,3,g);
                     g=grid(9);g[0]=stack("zona:receptor_m4");g[1]=stack("zona:cano_arma");g[2]=stack("zona:gatilho");g[4]=stack("zona:mola_arma");for(int i=6;i<9;i++)g[i]=stack("iron_ingot");recipeCheck(p,"m4",3,3,g);
                     g=grid(9);g[2]=stack("iron_ingot");g[4]=stack("zona:sucata_metalica");g[5]=stack("iron_ingot");g[6]=stack("stick");recipeCheck(p,"machete",3,3,g);
@@ -85,9 +87,15 @@ public final class WorldChecks {
                         var type=BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("zona",key));
                         var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);
                         check(mob!=null,"spawn "+key);mob.setNoAi(true);
+                        var clock=p.level().dimensionType().defaultClock().orElseThrow();
+                        for(var period:new long[]{1000,7000,13000}){
+                            p.level().getServer().clockManager().setTotalTicks(clock,period);
+                            check(mob.checkSpawnRules(p.level(),EntitySpawnReason.NATURAL),"natural spawn rule "+key+" at "+period);
+                        }
+                        p.level().getServer().clockManager().setTotalTicks(clock,0);
                         mob.snapTo(p.getX()+i*3,p.getY(),p.getZ()+5);
                         mob.setYRot(180);mob.setYHeadRot(180);mob.setYBodyRot(180);p.level().addFreshEntity(mob);
-                        if(i==0)dummy=mob.getUUID();
+                        initialTargets[i]=mob.getUUID();if(i==0)dummy=mob.getUUID();
                     }
                     var vanillaZombie=(Mob)BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.withDefaultNamespace("zombie")).create(p.level(),EntitySpawnReason.COMMAND);
                     vanillaZombie.snapTo(p.getX()-3,p.getY(),p.getZ()+5);p.level().addFreshEntity(vanillaZombie);
@@ -162,11 +170,23 @@ public final class WorldChecks {
             case 706 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(8).getCount()==1),"canned food restores hunger");select(9);mc.options.keyUse.setDown(true);use();}
             case 750 -> mc.options.keyUse.setDown(false);
             case 756 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(9).getCount()==1 && hasItem(p,Items.GLASS_BOTTLE)),"clean water restores hunger and returns glass bottle");Screenshot.grab(mc,false);}
-            case 765 -> server(p->{var clock=p.level().dimensionType().defaultClock().orElseThrow();p.level().getServer().clockManager().setTotalTicks(clock,48000);return true;});
+            case 765 -> server(p->{
+                for(int x=-3;x<=9;x++)for(int z=-2;z<=7;z++)p.level().setBlockAndUpdate(p.blockPosition().offset(x,4,z),Blocks.AIR.defaultBlockState());
+                var clock=p.level().dimensionType().defaultClock().orElseThrow();p.level().getServer().clockManager().setTotalTicks(clock,54000);
+                for(int i=0;i<3;i++){
+                    String key=new String[]{"comum","corredor","tanque"}[i];
+                    var type=BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("zona",key));
+                    var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);mob.setNoAi(true);mob.setInvulnerable(true);
+                    mob.snapTo(p.getX()-3+i*3,p.getY(),p.getZ()+9);p.level().addFreshEntity(mob);sunTargets[i]=mob.getUUID();
+                }
+                return true;
+            });
             case 780 -> check(server(p->{var seen=new HashSet<String>();for(var z:p.level().getEntitiesOfClass(LivingEntity.class,p.getBoundingBox().inflate(12)).stream().filter(e->e.getClass().getName().equals("br.zona.Infected")).toList()){
                 String type=BuiltInRegistries.ENTITY_TYPE.getKey(z.getType()).getPath();double expected=type.equals("tanque")?72.8:type.equals("corredor")?14.56:22.88;
                 if(z.getMaxHealth()<expected-.01)return false;seen.add(type);
-            }return seen.containsAll(Set.of("comum","corredor","tanque"));}),"all infected types evolve after two full days");
+            }
+                for(UUID id:sunTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)||z.isOnFire())return false;}
+                return seen.containsAll(Set.of("comum","corredor","tanque"));}),"all infected types evolve after two days and survive direct sunlight");
             case 790 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
         }
     }
