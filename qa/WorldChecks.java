@@ -76,7 +76,7 @@ public final class WorldChecks {
                     return true;
                 });
             }
-            case 108 -> check(server(p->p.level().getEntitiesOfClass(net.minecraft.world.entity.monster.zombie.Zombie.class,p.getBoundingBox().inflate(12)).stream().noneMatch(z->!"zona".equals(BuiltInRegistries.ENTITY_TYPE.getKey(z.getType()).getNamespace())),"vanilla mobs blocked");
+            case 108 -> check(server(p->p.level().getEntitiesOfClass(net.minecraft.world.entity.monster.zombie.Zombie.class,p.getBoundingBox().inflate(12)).stream().noneMatch(z->!"zona".equals(BuiltInRegistries.ENTITY_TYPE.getKey(z.getType()).getNamespace()))),"vanilla mobs blocked");
             case 115 -> {select(0);mc.options.keyAttack.setDown(true);}
             case 120 -> mc.options.keyAttack.setDown(false);
             case 130 -> {check(server(p->rounds(p.getMainHandItem()))==0,"empty trigger");reload();}
