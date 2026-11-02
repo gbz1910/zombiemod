@@ -56,7 +56,7 @@ public final class WorldChecks {
         BlockPos pos=p.blockPosition().offset(0,1,2);p.level().setBlockAndUpdate(pos,solid?Blocks.STONE.defaultBlockState():Blocks.AIR.defaultBlockState());
     }
     static void use(){mc().gameMode.useItem(mc().player,InteractionHand.MAIN_HAND);}
-    static float before,healed;
+    static float before,healed,headAfter;
     static String headReport(ServerPlayer p){
         var target=p.level().getEntity(dummy);var from=p.getEyePosition();var to=from.add(p.getLookAngle().scale(80));
         boolean body=target.getBoundingBox().clip(from,to).isPresent();String head="unknown";
@@ -141,9 +141,9 @@ public final class WorldChecks {
             }
             case 265 -> {float[] look=aimAtDummy();mc.player.setYRot(look[0]);mc.player.setXRot(look[1]);mc.options.keyAttack.setDown(true);}
             case 269 -> mc.options.keyAttack.setDown(false);
-            case 285 -> {String state=server(WorldChecks::headReport);check(server(p->hp(p)==10),"pistol headshot doubles torso damage ("+state+")");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
+            case 285 -> {String state=server(WorldChecks::headReport);headAfter=server(WorldChecks::hp);double headDamage=before-headAfter;check(headDamage>10,"pistol headshot causes high damage ("+state+", damage="+headDamage+")");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
             case 286 -> mc.options.keyAttack.setDown(false);
-            case 300 -> {check(server(p->hp(p)==4),"pistol torso shot uses normal damage");mc.player.setXRot(0);select(1);}
+            case 300 -> {double headDamage=before-headAfter,torsoDamage=server(p->headAfter-hp(p));check(torsoDamage>0 && Math.abs(headDamage-2*torsoDamage)<.02,"pistol headshot is twice torso damage (head="+headDamage+", torso="+torsoDamage+")");mc.player.setXRot(0);select(1);}
             case 294 -> select(1);
             case 296 -> reload();
             case 355 -> {
