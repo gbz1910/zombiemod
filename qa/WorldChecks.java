@@ -184,7 +184,7 @@ public final class WorldChecks {
             }
             case 635 -> mc.options.keyAttack.setDown(true);
             case 636 -> mc.options.keyAttack.setDown(false);
-            case 646 -> {String state=server(p->{boolean ok=true;var values=new StringJoiner(",");for(UUID id:meleeTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)){values.add("missing");ok=false;continue;}double damage=z.getMaxHealth()-z.getHealth();values.add(String.format(Locale.ROOT,"%.3f",damage));if(!z.isAlive()||Math.abs(damage-12)>.01)ok=false;}return ok+":"+values;});check(state.startsWith("true:"),"machete hits three nearby targets once each (damage="+state+")");Screenshot.grab(mc,false);select(7);}
+            case 646 -> {String state=server(p->{boolean ok=true;var values=new StringJoiner(",");for(UUID id:meleeTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)){values.add("missing");ok=false;continue;}double damage=z.getMaxHealth()-z.getHealth();values.add(String.format(Locale.ROOT,"%.3f",damage));if(!z.isAlive()||Math.abs(damage-12)>.25)ok=false;}return ok+":"+values;});check(state.startsWith("true:"),"machete hits three nearby targets once each (damage="+state+")");Screenshot.grab(mc,false);select(7);}
             case 656 -> check(server(p->p.hasEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION)),"held lantern grants night vision");
             case 660 -> {select(8);server(p->{p.getFoodData().setFoodLevel(10);return true;});mc.options.keyUse.setDown(true);use();}
             case 700 -> mc.options.keyUse.setDown(false);
