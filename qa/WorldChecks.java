@@ -176,7 +176,7 @@ public final class WorldChecks {
                 for(int i=0;i<3;i++){
                     String key=new String[]{"comum","corredor","tanque"}[i];
                     var type=BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("zona",key));
-                    var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);mob.setNoAi(true);mob.setInvulnerable(true);
+                    var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);mob.setNoAi(true);
                     mob.snapTo(p.getX()-3+i*3,p.getY(),p.getZ()+9);p.level().addFreshEntity(mob);sunTargets[i]=mob.getUUID();
                 }
                 return true;
