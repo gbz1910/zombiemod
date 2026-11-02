@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shapeless",
   "category": "equipment",
   "ingredients": [
-    {
-      "item": "minecraft:iron_nugget"
-    },
-    {
-      "item": "zona:mola_arma"
-    }
+    "minecraft:iron_nugget",
+    "zona:mola_arma"
   ],
   "result": {
     "id": "zona:gatilho",

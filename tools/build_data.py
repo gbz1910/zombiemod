@@ -50,7 +50,7 @@ recipe('municao_556',16,['IN','CG','PG'],{'I':'minecraft:iron_ingot','N':'minecr
 # Intermediates make the two firearms a real survival progression.
 recipe('sucata_metalica',3,['III'],{'I':'minecraft:iron_ingot'})
 recipe('mola_arma',1,['I','I','I'],{'I':'minecraft:iron_ingot'})
-shapeless('gatilho',1,[{'item':'minecraft:iron_nugget'},{'item':'zona:mola_arma'}])
+shapeless('gatilho',1,['minecraft:iron_nugget','zona:mola_arma'])
 recipe('cano_arma',1,['III'],{'I':'zona:sucata_metalica'})
 recipe('corpo_pistola',1,['III','S S','III'],{'I':'zona:sucata_metalica','S':'minecraft:iron_ingot'})
 recipe('receptor_m4',1,['III','ISI','III'],{'I':'zona:sucata_metalica','S':'minecraft:iron_ingot'})
@@ -58,7 +58,7 @@ recipe('pistola',1,['BCT',' SI',' I '],{'B':'zona:corpo_pistola','C':'zona:cano_
 recipe('m4',1,['RCT',' S ','III'],{'R':'zona:receptor_m4','C':'zona:cano_arma','T':'zona:gatilho','S':'zona:mola_arma','I':'minecraft:iron_ingot'})
 recipe('machete',1,['  I',' SI','G  '],{'I':'minecraft:iron_ingot','S':'zona:sucata_metalica','G':'minecraft:stick'})
 recipe('lanterna',1,[' I ','IGI',' S '],{'I':'minecraft:iron_nugget','G':'minecraft:glass_pane','S':'minecraft:torch'})
-shapeless('garrafa_agua_limpa',1,[{'item':'minecraft:glass_bottle'},{'item':'minecraft:water_bucket'}])
+shapeless('garrafa_agua_limpa',1,['minecraft:glass_bottle','minecraft:water_bucket'])
 
 write('data/zona/damage_type/bala.json',{'exhaustion':.1,'message_id':'zona.bala','scaling':'never'})
 for tag in ('bypasses_cooldown','is_projectile'):
