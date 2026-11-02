@@ -56,7 +56,7 @@ public final class WorldChecks {
         BlockPos pos=p.blockPosition().offset(0,1,2);p.level().setBlockAndUpdate(pos,solid?Blocks.STONE.defaultBlockState():Blocks.AIR.defaultBlockState());
     }
     static void use(){mc().gameMode.useItem(mc().player,InteractionHand.MAIN_HAND);}
-    static float before,healed,headAfter;
+    static float before,healed,headAfter; static double measuredHeadDamage;
     static String headReport(ServerPlayer p){
         var target=p.level().getEntity(dummy);var from=p.getEyePosition();var to=from.add(p.getLookAngle().scale(80));
         boolean body=target.getBoundingBox().clip(from,to).isPresent();String head="unknown";
@@ -66,6 +66,11 @@ public final class WorldChecks {
     }
     static float[] aimAtDummy(double heightRatio){return server(p->{var target=p.level().getEntity(dummy);var eye=p.getEyePosition();var point=new net.minecraft.world.phys.Vec3(target.getX(),target.getY()+target.getBbHeight()*heightRatio,target.getZ());var delta=point.subtract(eye);float yaw=(float)Math.toDegrees(Math.atan2(-delta.x,delta.z));float pitch=(float)-Math.toDegrees(Math.atan2(delta.y,Math.sqrt(delta.x*delta.x+delta.z*delta.z)));p.setYRot(yaw);p.setXRot(pitch);p.setYHeadRot(yaw);p.setYBodyRot(yaw);return new float[]{yaw,pitch};});}
     @SubscribeEvent public static void freezeMobAi(EntityJoinLevelEvent event){if(event.getEntity() instanceof Mob mob)mob.setNoAi(true);}
+    static double damage(ServerPlayer p){var target=(LivingEntity)p.level().getEntity(dummy);return target.getMaxHealth()-target.getHealth();}
+    static void spawnTarget(String key,double xOffset){server(p->{for(Mob old:p.level().getEntitiesOfClass(Mob.class,p.getBoundingBox().inflate(24))){var id=BuiltInRegistries.ENTITY_TYPE.getKey(old.getType());if(id!=null&&id.getNamespace().equals("zona"))old.remove(Entity.RemovalReason.DISCARDED);}var type=BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("zona",key));var mob=(Mob)type.create(p.level(),EntitySpawnReason.COMMAND);if(mob==null)throw new IllegalStateException("cannot create "+key);mob.setNoAi(true);mob.snapTo(p.getX()+xOffset,p.getY(),p.getZ()+8);mob.setYRot(180);mob.setYHeadRot(180);mob.setYBodyRot(180);p.level().addFreshEntity(mob);dummy=mob.getUUID();return true;});}
+    static void fireAim(double ratio){float[] look=aimAtDummy(ratio);mc().player.setYRot(look[0]);mc().player.setXRot(look[1]);mc().options.keyAttack.setDown(true);}
+    static void checkHeadThenFireBody(String label){measuredHeadDamage=server(WorldChecks::damage);check(measuredHeadDamage>10,label+" headshot damage="+measuredHeadDamage);server(p->{var target=(LivingEntity)p.level().getEntity(dummy);target.setHealth(target.getMaxHealth());return true;});fireAim(.55);}
+    static void checkBodyAgainstHead(String label){double torsoDamage=server(WorldChecks::damage);check(torsoDamage>0&&Math.abs(measuredHeadDamage-2*torsoDamage)<.03,label+" head="+measuredHeadDamage+", torso="+torsoDamage);}
     @SubscribeEvent public static void tick(TickEvent.ClientTickEvent.Post ignored){
         var mc=mc();
         if(!started && mc.gui.screen() instanceof TitleScreen){
@@ -179,14 +184,30 @@ public final class WorldChecks {
             }
             case 635 -> mc.options.keyAttack.setDown(true);
             case 636 -> mc.options.keyAttack.setDown(false);
-            case 646 -> {check(server(p->{for(UUID id:meleeTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)||z.getHealth()!=10)return false;}return true;}),"machete hits three nearby targets once each");Screenshot.grab(mc,false);select(7);}
+            case 646 -> {String state=server(p->{boolean ok=true;var values=new StringJoiner(",");for(UUID id:meleeTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)){values.add("missing");ok=false;continue;}double damage=z.getMaxHealth()-z.getHealth();values.add(String.format(Locale.ROOT,"%.3f",damage));if(!z.isAlive()||Math.abs(damage-12)>.01)ok=false;}return ok+":"+values;});check(state.startsWith("true:"),"machete hits three nearby targets once each (damage="+state+")");Screenshot.grab(mc,false);select(7);}
             case 656 -> check(server(p->p.hasEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION)),"held lantern grants night vision");
             case 660 -> {select(8);server(p->{p.getFoodData().setFoodLevel(10);return true;});mc.options.keyUse.setDown(true);use();}
             case 700 -> mc.options.keyUse.setDown(false);
             case 706 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(8).getCount()==1),"canned food restores hunger");select(9);mc.options.keyUse.setDown(true);use();}
             case 750 -> mc.options.keyUse.setDown(false);
             case 756 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(9).getCount()==1 && hasItem(p,Items.GLASS_BOTTLE)),"clean water restores hunger and returns glass bottle");Screenshot.grab(mc,false);}
-            case 765 -> server(p->{
+            case 760 -> {mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);select(1);spawnTarget("comum",0);}
+            case 763 -> fireAim(.90);
+            case 764 -> mc.options.keyAttack.setDown(false);
+            case 775 -> checkHeadThenFireBody("M4 comum");
+            case 776 -> mc.options.keyAttack.setDown(false);
+            case 788 -> {checkBodyAgainstHead("M4 comum");spawnTarget("corredor",3);}
+            case 791 -> fireAim(.90);
+            case 792 -> mc.options.keyAttack.setDown(false);
+            case 803 -> checkHeadThenFireBody("M4 corredor");
+            case 804 -> mc.options.keyAttack.setDown(false);
+            case 816 -> {checkBodyAgainstHead("M4 corredor");spawnTarget("tanque",-3);}
+            case 819 -> fireAim(.90);
+            case 820 -> mc.options.keyAttack.setDown(false);
+            case 831 -> checkHeadThenFireBody("M4 tanque");
+            case 832 -> mc.options.keyAttack.setDown(false);
+            case 844 -> {checkBodyAgainstHead("M4 tanque");Screenshot.grab(mc,false);}
+            case 860 -> server(p->{
                 for(int x=-3;x<=9;x++)for(int z=-2;z<=7;z++)p.level().setBlockAndUpdate(p.blockPosition().offset(x,4,z),Blocks.AIR.defaultBlockState());
                 var clock=p.level().dimensionType().defaultClock().orElseThrow();p.level().getServer().clockManager().setTotalTicks(clock,54000);
                 for(int i=0;i<3;i++){
@@ -197,13 +218,13 @@ public final class WorldChecks {
                 }
                 return true;
             });
-            case 780 -> check(server(p->{var seen=new HashSet<String>();for(var z:p.level().getEntitiesOfClass(LivingEntity.class,p.getBoundingBox().inflate(12)).stream().filter(e->e.getClass().getName().equals("br.zona.Infected")).toList()){
+            case 880 -> check(server(p->{var seen=new HashSet<String>();for(var z:p.level().getEntitiesOfClass(LivingEntity.class,p.getBoundingBox().inflate(12)).stream().filter(e->e.getClass().getName().equals("br.zona.Infected")).toList()){
                 String type=BuiltInRegistries.ENTITY_TYPE.getKey(z.getType()).getPath();double expected=type.equals("tanque")?72.8:type.equals("corredor")?14.56:22.88;
                 if(z.getMaxHealth()<expected-.01)return false;seen.add(type);
             }
                 for(UUID id:sunTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)||z.isOnFire())return false;}
                 return seen.containsAll(Set.of("comum","corredor","tanque"));}),"all infected types evolve after two days and survive direct sunlight");
-            case 790 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
+            case 890 -> {System.out.println("ZONA_QA_WORLD_COMPLETE");mc.stop();}
         }
     }
 }
