@@ -68,7 +68,7 @@ public final class WorldChecks {
         switch(t){
             case 100 -> {
                 mc.player.setXRot(0);mc.player.setYRot(0);
-                server(p->{var inv=p.getInventory();
+                server(p->{p.setInvulnerable(true);var inv=p.getInventory();
                     String[] ids={"pistola","m4","municao_9mm","municao_556","bandagem","kit","machete","lanterna","lata_comida","garrafa_agua_limpa","sucata_metalica","mola_arma","gatilho","cano_arma","corpo_pistola","receptor_m4"};
                     int[] counts={1,1,17,48,2,2,1,1,2,2,3,1,1,1,1,1};
                     for(int i=0;i<ids.length;i++){check(item(ids[i])!=Items.AIR,"registered "+ids[i]);inv.setItem(i,new ItemStack(item(ids[i]),counts[i]));}
