@@ -18,10 +18,8 @@ final class Spawns {
             }
             return false;
         });
-        EntityJoinLevelEvent.BUS.addListener(e->{
-            if(e.getLevel() instanceof net.minecraft.server.level.ServerLevel && e.getEntity() instanceof Mob && !(e.getEntity() instanceof Infected))e.cancel();
-            return false;
-        });
+        // In EventBus 7 a predicate returning true cancels a cancellable record event.
+        EntityJoinLevelEvent.BUS.addListener(e->e.getLevel() instanceof net.minecraft.server.level.ServerLevel && e.getEntity() instanceof Mob && !(e.getEntity() instanceof Infected));
     }
     private static void add(LevelEvent.PotentialSpawns event,EntityType<?> type,int weight){
         if(weight>0)event.addSpawnerData(new MobSpawnSettings.SpawnerData(type,ConstantInt.of(1)),weight);
