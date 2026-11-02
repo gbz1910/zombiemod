@@ -64,7 +64,7 @@ public final class WorldChecks {
         catch(Exception ex){head="error:"+ex.getClass().getSimpleName();}
         return "hp="+hp(p)+", rounds="+rounds(p.getMainHandItem())+", look="+p.getXRot()+"/"+p.getYRot()+", bodyClip="+body+", headClip="+head;
     }
-    static float[] aimAtDummy(){return server(p->{var target=p.level().getEntity(dummy);var eye=p.getEyePosition();var point=new net.minecraft.world.phys.Vec3(target.getX(),target.getY()+target.getBbHeight()*.90,target.getZ());var delta=point.subtract(eye);float yaw=(float)Math.toDegrees(Math.atan2(-delta.x,delta.z));float pitch=(float)-Math.toDegrees(Math.atan2(delta.y,Math.sqrt(delta.x*delta.x+delta.z*delta.z)));p.setYRot(yaw);p.setXRot(pitch);p.setYHeadRot(yaw);p.setYBodyRot(yaw);return new float[]{yaw,pitch};});}
+    static float[] aimAtDummy(double heightRatio){return server(p->{var target=p.level().getEntity(dummy);var eye=p.getEyePosition();var point=new net.minecraft.world.phys.Vec3(target.getX(),target.getY()+target.getBbHeight()*heightRatio,target.getZ());var delta=point.subtract(eye);float yaw=(float)Math.toDegrees(Math.atan2(-delta.x,delta.z));float pitch=(float)-Math.toDegrees(Math.atan2(delta.y,Math.sqrt(delta.x*delta.x+delta.z*delta.z)));p.setYRot(yaw);p.setXRot(pitch);p.setYHeadRot(yaw);p.setYBodyRot(yaw);return new float[]{yaw,pitch};});}
     @SubscribeEvent public static void freezeMobAi(EntityJoinLevelEvent event){if(event.getEntity() instanceof Mob mob)mob.setNoAi(true);}
     @SubscribeEvent public static void tick(TickEvent.ClientTickEvent.Post ignored){
         var mc=mc();
@@ -139,9 +139,9 @@ public final class WorldChecks {
                 check((int)shotState[0]==11 && shotState[1]==before,"one pistol shot per press and wall protection (rounds="+shotState[0]+", hp="+shotState[1]+", before="+before+")");
                 server(p->{wall(p,false);return true;});mc.player.setXRot(0);
             }
-            case 265 -> {float[] look=aimAtDummy();mc.player.setYRot(look[0]);mc.player.setXRot(look[1]);mc.options.keyAttack.setDown(true);}
+            case 265 -> {float[] look=aimAtDummy(.90);mc.player.setYRot(look[0]);mc.player.setXRot(look[1]);mc.options.keyAttack.setDown(true);}
             case 269 -> mc.options.keyAttack.setDown(false);
-            case 285 -> {String state=server(WorldChecks::headReport);headAfter=server(WorldChecks::hp);double headDamage=before-headAfter;check(headDamage>10,"pistol headshot causes high damage ("+state+", damage="+headDamage+")");Screenshot.grab(mc,false);mc.player.setXRot(7);mc.options.keyAttack.setDown(true);}
+            case 285 -> {String state=server(WorldChecks::headReport);headAfter=server(WorldChecks::hp);double headDamage=before-headAfter;check(headDamage>10,"pistol headshot causes high damage ("+state+", damage="+headDamage+")");float[] body=aimAtDummy(.55);Screenshot.grab(mc,false);mc.player.setYRot(body[0]);mc.player.setXRot(body[1]);mc.options.keyAttack.setDown(true);}
             case 286 -> mc.options.keyAttack.setDown(false);
             case 300 -> {double headDamage=before-headAfter,torsoDamage=server(p->headAfter-hp(p));check(torsoDamage>0 && Math.abs(headDamage-2*torsoDamage)<.02,"pistol headshot is twice torso damage (head="+headDamage+", torso="+torsoDamage+")");mc.player.setXRot(0);select(1);}
             case 294 -> select(1);
