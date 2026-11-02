@@ -69,7 +69,7 @@ public final class WorldChecks {
                         mob.setYRot(180);mob.setYHeadRot(180);mob.setYBodyRot(180);p.level().addFreshEntity(mob);
                         if(i==0)dummy=mob.getUUID();
                     }
-                    var vanillaZombie=EntityType.ZOMBIE.create(p.level(),EntitySpawnReason.COMMAND);
+                    var vanillaZombie=(Mob)BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.withDefaultNamespace("zombie")).create(p.level(),EntitySpawnReason.COMMAND);
                     vanillaZombie.snapTo(p.getX()-3,p.getY(),p.getZ()+5);p.level().addFreshEntity(vanillaZombie);
                     p.getFoodData().setFoodLevel(10);
                     for(int x=-3;x<=9;x++)for(int z=-2;z<=7;z++)p.level().setBlockAndUpdate(p.blockPosition().offset(x,4,z),Blocks.STONE.defaultBlockState());
