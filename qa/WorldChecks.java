@@ -27,7 +27,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
-import br.zona.Infected;
 
 @Mod.EventBusSubscriber(modid="examplemod",value=Dist.CLIENT)
 public final class WorldChecks {
@@ -156,7 +155,7 @@ public final class WorldChecks {
             }
             case 635 -> mc.options.keyAttack.setDown(true);
             case 636 -> mc.options.keyAttack.setDown(false);
-            case 646 -> {check(server(p->{for(UUID id:meleeTargets){var z=(Infected)p.level().getEntity(id);if(z==null||z.getHealth()!=10)return false;}return true;}),"machete hits three nearby targets once each");Screenshot.grab(mc,false);select(7);}
+            case 646 -> {check(server(p->{for(UUID id:meleeTargets){var entity=p.level().getEntity(id);if(!(entity instanceof LivingEntity z)||z.getHealth()!=10)return false;}return true;}),"machete hits three nearby targets once each");Screenshot.grab(mc,false);select(7);}
             case 656 -> check(server(p->p.hasEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION)),"held lantern grants night vision");
             case 660 -> {select(8);server(p->{p.getFoodData().setFoodLevel(10);return true;});mc.options.keyUse.setDown(true);use();}
             case 700 -> mc.options.keyUse.setDown(false);
@@ -164,7 +163,7 @@ public final class WorldChecks {
             case 750 -> mc.options.keyUse.setDown(false);
             case 756 -> {check(server(p->p.getFoodData().getFoodLevel()>10 && p.getInventory().getItem(9).getCount()==1 && hasItem(p,Items.GLASS_BOTTLE)),"clean water restores hunger and returns glass bottle");Screenshot.grab(mc,false);}
             case 765 -> server(p->{var clock=p.level().dimensionType().defaultClock().orElseThrow();p.level().getServer().clockManager().setTotalTicks(clock,48000);return true;});
-            case 780 -> check(server(p->{var seen=new HashSet<String>();for(var z:p.level().getEntitiesOfClass(Infected.class,p.getBoundingBox().inflate(12))){
+            case 780 -> check(server(p->{var seen=new HashSet<String>();for(var z:p.level().getEntitiesOfClass(LivingEntity.class,p.getBoundingBox().inflate(12)).stream().filter(e->e.getClass().getName().equals("br.zona.Infected")).toList()){
                 String type=BuiltInRegistries.ENTITY_TYPE.getKey(z.getType()).getPath();double expected=type.equals("tanque")?72.8:type.equals("corredor")?14.56:22.88;
                 if(z.getMaxHealth()<expected-.01)return false;seen.add(type);
             }return seen.containsAll(Set.of("comum","corredor","tanque"));}),"all infected types evolve after two full days");
