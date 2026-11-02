@@ -27,6 +27,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
+import br.zona.Infected;
 
 @Mod.EventBusSubscriber(modid="examplemod",value=Dist.CLIENT)
 public final class WorldChecks {

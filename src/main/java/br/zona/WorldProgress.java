@@ -8,11 +8,11 @@ final class WorldProgress {
     static void register(){
         TickEvent.LevelTickEvent.Post.BUS.addListener(event->{
             if(!(event.level() instanceof ServerLevel level) || level!=level.getServer().overworld())return;
-            long time=level.clockManager().getInstance(level.dimensionType().defaultClock()).totalTicks();
+            long time=level.clockManager().getInstance(level.dimensionType().defaultClock().orElseThrow()).totalTicks();
             long day=time/24000;
             if(day>0 && day!=announcedDay){
                 announcedDay=day;
-                for(var player:level.players())player.displayClientMessage(Component.literal("Os zumbis estão mais perigosos."),true);
+                for(var player:level.players())player.sendSystemMessage(Component.literal("Os zumbis estão mais perigosos."),true);
             }
         });
     }
